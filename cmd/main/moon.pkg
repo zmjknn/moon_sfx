@@ -1,0 +1,5 @@
+import {
+  "zmjknn/moon_sfx" @lib,
+}
+
+pkgtype(kind: "executable")
