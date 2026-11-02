@@ -95,7 +95,58 @@ fn main {
   println("    * WAV Size: " + fanfare_wav.length().to_string() + " bytes")
 
   println("")
-  println("5. Interactive HTML5 Audio Playground Generation:")
+  println("5. Demonstrating FM (Frequency Modulation) Synthesis Engine:")
+  println("------------------------------------------------------------------")
+  let ep_wav = @lib.encode_wav_16bit(@lib.fm_electric_piano(440.0, 0.5, 44100))
+  let bell_wav = @lib.encode_wav_16bit(@lib.fm_bell(880.0, 0.5, 44100))
+  let bass_wav = @lib.encode_wav_16bit(@lib.fm_slap_bass(110.0, 0.4, 44100))
+  println("  - FM Yamaha DX7 E-Piano: " + ep_wav.length().to_string() + " bytes (1:1 ratio, dynamic brightness)")
+  println("  - FM Crystal Bell:       " + bell_wav.length().to_string() + " bytes (inharmonic golden ratio)")
+  println("  - FM Sega Genesis Bass:  " + bass_wav.length().to_string() + " bytes (1:2 ratio punchy slap)")
+
+  println("")
+  println("6. Demonstrating MML (Music Macro Language) Compiler:")
+  println("------------------------------------------------------------------")
+  let mml_demo = "T150 O4 C8 E8 G8 > C8 < B8 G8 C4"
+  let mml_audio = @lib.render_mml(mml_demo, @lib.Waveform::Square(0.5), @lib.ADSR::organ(), 44100)
+  let mml_wav = @lib.encode_wav_16bit(mml_audio)
+  println("  - MML Source: \"" + mml_demo + "\"")
+  println("  - Compiled Samples: " + mml_audio.length().to_string() + " samples, " + mml_wav.length().to_string() + " bytes")
+
+  println("")
+  println("7. Demonstrating Stereo Panning & Multi-Track Game Mixer:")
+  println("------------------------------------------------------------------")
+  let mixer = @lib.Mixer::new(44100)
+  let sfx_l = @lib.render_tone(@lib.Waveform::Square(0.5), 523.25, 0.3, 44100, 0.7) // C5
+  let sfx_r = @lib.render_tone(@lib.Waveform::Sawtooth, 659.25, 0.3, 44100, 0.7)  // E5
+  mixer.add_track(sfx_l, 0.0, 0.8, -0.85) // panned Left
+  mixer.add_track(sfx_r, 0.1, 0.8, 0.85)  // panned Right
+  let stereo_res = mixer.render_stereo()
+  let stereo_wav = @lib.encode_wav_stereo_16bit(stereo_res)
+  println("  - Rendered 2-Track Constant-Power Spatial Mix: " + stereo_res.length().to_string() + " frames")
+  println("  - Output Stereo WAV (2-ch, 16-bit): " + stereo_wav.length().to_string() + " bytes")
+
+  println("")
+  println("8. Demonstrating Native WAV Decoder & Inspector:")
+  println("------------------------------------------------------------------")
+  let inspect_res = @lib.inspect_wav(stereo_wav)
+  match inspect_res {
+    Ok(info) => {
+      println("  - Inspected Channels:    " + info.num_channels.to_string())
+      println("  - Inspected Sample Rate: " + info.sample_rate.to_string() + " Hz")
+      println("  - Inspected Bit Depth:   " + info.bits_per_sample.to_string() + "-bit PCM")
+      println("  - Inspected Samples:     " + info.num_samples.to_string())
+    }
+    Err(e) => println("  - Inspect Error: " + e)
+  }
+  let decode_res = @lib.decode_wav_stereo(stereo_wav)
+  match decode_res {
+    Ok(decoded) => println("  - Successfully decoded round-trip StereoBuffer: " + decoded.length().to_string() + " frames")
+    Err(e) => println("  - Decode Error: " + e)
+  }
+
+  println("")
+  println("9. Interactive HTML5 Audio Playground Generation:")
   println("------------------------------------------------------------------")
   let html = @lib.generate_html_playground()
   println("  - Generated Single-File HTML5 Audio Studio: " + html.length().to_string() + " characters")

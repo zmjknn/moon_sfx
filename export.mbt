@@ -75,6 +75,20 @@ pub fn generate_html_playground() -> String {
   )
   let fanfare_uri = fanfare_buffer.to_data_uri()
 
+  // New features: FM presets
+  let fm_piano_uri = fm_electric_piano(440.0, 1.2, 44100).to_data_uri()
+  let fm_bell_uri = fm_bell(880.0, 1.5, 44100).to_data_uri()
+  let fm_bass_uri = fm_slap_bass(110.0, 0.8, 44100).to_data_uri()
+
+  // New features: MML melody
+  let mml_uri = render_mml("T140 O4 C8 E8 G8 > C8 < B8 G8 C2", Square(0.5), ADSR::organ(), 44100).to_data_uri()
+
+  // New features: Stereo Panning Demo (Laser panned Left, Coin panned Right)
+  let mixer_demo = Mixer::new(44100)
+  mixer_demo.add_track(SfxParams::laser(1U).synthesize(44100), 0.0, 0.85, -0.9)
+  mixer_demo.add_track(SfxParams::coin(3U).synthesize(44100), 0.25, 0.85, 0.9)
+  let stereo_demo_uri = mixer_demo.render_stereo().to_data_uri()
+
   let sb = StringBuilder()
   sb.write_string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
   sb.write_string("  <meta charset=\"UTF-8\">\n")
@@ -114,6 +128,11 @@ pub fn generate_html_playground() -> String {
   add_card("Powerup", "SFXR PRESET", "Triumphant ascending saw slide accompanied by vibrato modulation.", powerup_uri)
   add_card("UI Blip", "SFXR PRESET", "Ultra-short high pitch click designed for menu navigation.", blip_uri)
   add_card("Victory Fanfare", "SEQUENCER MELODY", "Multi-note 8-bit victory melody rendered via the built-in MML sequencer.", fanfare_uri)
+  add_card("FM Electric Piano", "FM SYNTHESIS", "Yamaha DX7 style 1:1 harmonic ratio FM electric piano with percussive metallic chime.", fm_piano_uri)
+  add_card("FM Crystal Bell", "FM SYNTHESIS", "Inharmonic metallic church bell with resonant physical frequency modulation.", fm_bell_uri)
+  add_card("FM Slap Bass", "FM SYNTHESIS", "Sega Genesis 16-bit YM2612 style funk slap bass with sharp 2nd harmonic transient.", fm_bass_uri)
+  add_card("MML Retro Melody", "MML COMPILER", "Rendered directly from string 'T140 O4 C8 E8 G8 > C8 < B8 G8 C2'.", mml_uri)
+  add_card("Stereo Spatial Mixer", "STEREO PANNING", "Left-to-right constant-power spatial separation: Laser on Left (-0.9), Coin on Right (+0.9).", stereo_demo_uri)
 
   sb.write_string("  </div>\n")
   sb.write_string("</div>\n</body>\n</html>\n")
