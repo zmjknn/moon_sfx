@@ -3,7 +3,7 @@
 [![CI](https://github.com/zmjknn/moon_sfx/actions/workflows/ci.yml/badge.svg)](https://github.com/zmjknn/moon_sfx/actions/workflows/ci.yml)
 [![MoonBit](https://img.shields.io/badge/MoonBit-0.1.20261016-purple.svg)](https://www.moonbitlang.com)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-26%20passed-brightgreen.svg)](https://github.com/zmjknn/moon_sfx)
+[![Tests](https://img.shields.io/badge/Tests-40%20passed-brightgreen.svg)](https://github.com/zmjknn/moon_sfx)
 [![Dependencies](https://img.shields.io/badge/Dependencies-Zero-success.svg)](moon.mod)
 
 `moon_sfx` is an industrial-grade, zero-dependency procedural audio synthesizer, 8-bit retro game sound FX generator, and Microsoft RIFF WAVE binary encoder implemented in 100% pure [MoonBit](https://www.moonbitlang.com).
@@ -77,6 +77,34 @@ Ported, refactored, and type-safety enhanced from Tomas Pettersson's legendary `
     ```
 - **Interactive HTML5 Studio (`generate_html_playground`)**:
   - Exports a self-contained, responsive dark-mode HTML page containing embedded audio clips, waveform descriptions, and instant audio playback controls.
+
+### 7. FM (Frequency Modulation) Synthesis Engine (`fm.mbt`)
+Emulates classic Yamaha OPL2/OPL3 and Sega Genesis YM2612 sound chips via 2-operator Chowning FM algorithms:
+- **Dynamic Carrier/Modulator Shaping**: Exponential decay of modulation index $I$ captures real physical acoustic resonance.
+- **Built-in Presets**:
+  - `fm_electric_piano(freq, dur, sr)`: DX7-style 1:1 harmonic bell chime.
+  - `fm_bell(freq, dur, sr)`: Inharmonic $1 : \sqrt{2}$ metallic church bell.
+  - `fm_brass(freq, dur, sr)`: Polyphonic synth brass swell.
+  - `fm_slap_bass(freq, dur, sr)`: Sega Genesis 1:2 ratio punchy funk slap bass.
+
+### 8. Music Macro Language (MML) Compiler (`mml.mbt`)
+Full retro MML parser compiling single-line score strings directly into playable PCM audio:
+- **Syntax**: `T<bpm>`, `O<octave>`, `>`, `<`, `L<length>`, `V<volume>`, notes `C-B` (with `#`, `+`, `-`), and rests `R`/`P`.
+- **One-Liner Melody Rendering**:
+  ```moonbit
+  let audio = @sfx.render_mml("T140 O4 C8 E8 G8 > C4", Square(0.5), ADSR::organ(), 44100)
+  ```
+
+### 9. Spatial Stereo & Multi-Track Game Mixer (`types.mbt`, `mixer.mbt`)
+- **StereoBuffer & Constant-Power Panning Law**:
+  $$\theta = (\text{pan} + 1.0) \times \frac{\pi}{4}, \quad L = \cos(\theta), \quad R = \sin(\theta)$$
+- **Multi-Track Mixer**: Polyphonic multi-track scheduler with start time offsets, per-track volume, pan, and mute controls.
+- **Master Soft Limiter**: Smooth algebraic saturation prevents harsh digital clipping when multiple sounds overlap.
+- **Stereo WAV Encoder**: Encodes 2-channel 16-bit interleaved PCM WAV files.
+
+### 10. Native RIFF WAVE Binary Decoder (`wav.mbt`)
+- **Header Inspection (`inspect_wav`)**: Extracts sample rate, channels, bit depth, duration, and sample count without full decoding.
+- **Dual Decoder (`decode_wav`, `decode_wav_stereo`)**: Decodes standard 16-bit signed and 8-bit unsigned PCM WAV files back into `AudioBuffer` or `StereoBuffer` with zero external dependencies.
 
 ---
 
@@ -200,11 +228,15 @@ Output preview:
 
 ## Verification & Testing
 
-The package includes 26 deterministic unit and invariant tests covering:
+The package includes 40 deterministic unit, invariant, and round-trip tests covering:
 - Mathematical waveform phase boundary accuracy
 - Robert Bristow-Johnson biquad filter stability
 - ADSR envelope phase transitions (Attack, Decay, Sustain, Release)
 - RIFF WAVE binary header compliance and 16-bit/8-bit byte layout
+- Bi-directional WAV encoding and decoding round-trip integrity
+- Stereo constant-power panning law and multi-track mixing
+- FM 2-operator frequency modulation and dynamic index decay
+- Music Macro Language (MML) syntax parsing and compilation
 - RFC 4648 Base64 official test vectors
 - 12-Tone equal temperament pitch calculation accuracy ($A_4 = 440\text{ Hz}$)
 - High-throughput multi-voice audio mixing and memory safety
@@ -217,7 +249,7 @@ moon test
 
 Result:
 ```text
-Total tests: 26, passed: 26, failed: 0.
+Total tests: 40, passed: 40, failed: 0.
 ```
 
 ---
