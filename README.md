@@ -34,13 +34,13 @@ Targeted at WebAssembly browser games, indie cross-platform engines, UI interact
 ### 3. Procedural SFXR Retro Sound Generator (`sfxr.mbt`)
 Ported, refactored, and type-safety enhanced from Tomas Pettersson's legendary `sfxr` algorithm:
 - **7 Classic Game Sound FX Presets**:
-  - 💥 `laser(seed)`: Rapid downward frequency sweep with square/sawtooth timbre.
-  - 🦘 `jump(seed)`: Upward pitch jump with snappy decay.
-  - 💣 `explosion(seed)`: Resonant low-pass filtered noise with heavy sustain punch.
-  - 🪙 `coin(seed)`: Two-tone ascending arpeggio step simulating retro coin pickups.
-  - 🥊 `hit(seed)`: Crunchy noise/square impact with steep pitch plunge.
-  - ⭐ `powerup(seed)`: Ascending multi-harmonic saw slide with vibrato modulation.
-  - 🔘 `blip(seed)`: Ultra-short high-frequency click for UI menus.
+  - `laser(seed)`: Rapid downward frequency sweep with square/sawtooth timbre.
+  - `jump(seed)`: Upward pitch jump with snappy decay.
+  - `explosion(seed)`: Resonant low-pass filtered noise with heavy sustain punch.
+  - `coin(seed)`: Two-tone ascending arpeggio step simulating retro coin pickups.
+  - `hit(seed)`: Crunchy noise/square impact with steep pitch plunge.
+  - `powerup(seed)`: Ascending multi-harmonic saw slide with vibrato modulation.
+  - `blip(seed)`: Ultra-short high-frequency click for UI menus.
 - **Deterministic Mutator (`mutate`)**: Perturbs existing parameters within specified intensity `[0.0, 1.0]` using reproducible PRNG seeds.
 - **Wild Randomizer (`randomize`)**: Generates completely unexpected sound parameters for creative sound design.
 
@@ -222,6 +222,15 @@ Total tests: 26, passed: 26, failed: 0.
 
 ---
 
+## References & Attribution
+
+- Tomas Pettersson, original creator of [*sfxr*](https://github.com/grimfang4/sfxr) (Public Domain)
+- Chris McCormick, [*jsfxr*](https://github.com/chr15m/jsfxr) (Apache-2.0)
+- Robert Bristow-Johnson, *Cookbook formulae for audio equalizer biquad filter coefficients*
+- Microsoft Corporation & IBM, *Multimedia Programming Interface and Data Specifications 1.0 (RIFF WAVE)*
+
+---
+
 ## License
 
-Apache-2.0
+Licensed under the [Apache License, Version 2.0](LICENSE).
