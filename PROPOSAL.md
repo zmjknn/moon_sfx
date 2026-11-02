@@ -4,82 +4,62 @@ moon_sfx 项目申报书
 moon_sfx：基于 MoonBit 原生实现的轻量级过程化音频合成与复古游戏音效引擎
 
 2、项目简介
-moon_sfx 是一个纯原生、零外部依赖（Zero-Dependency）的过程化音频合成与复古游戏音效引擎。项目针对 WebAssembly 网页游戏、跨平台独立游戏、UI 交互反馈以及无资源音频（Asset-less Game Audio）等场景，提供高保真波形振荡合成、ADSR 声音包络调制、sfxr 经典复古游戏音效生成、数字信号滤波处理与标准 RIFF WAVE 二进制文件生成能力。
+moon_sfx 是一个纯原生、零外部依赖（Zero-Dependency）的过程化音频合成与复古游戏音效引擎。针对 WebAssembly 网页游戏、跨平台独立游戏、UI 交互反馈以及无资源音频（Asset-less Game Audio）等场景，提供高保真波形振荡合成、ADSR 声音包络调制、sfxr 经典复古游戏音效生成、数字信号滤波处理与标准 RIFF WAVE 二进制文件生成能力。
 项目构建了清晰的分层式架构交付体系：
 第一层为数学波形振荡与声音包络层：提供正弦波（Sine）、方波/脉冲波（Square/PWM）、锯齿波（Sawtooth）、三角波（Triangle）与伪随机白噪声（Noise）五大经典波形振荡器，配合支持线性与对数过渡的 4 段式 ADSR 包络发生器；
 第二层为过程化音效与数字滤波层：重构实现了经典 sfxr 核心生成算法，支持激光射击（Laser）、跳跃（Jump）、爆炸（Explosion）、金币拾取（Coin）、受到伤害（Hit）、能力提升（Powerup）与按键选择（Blip）7 大经典预设，支持基于随机种子的可复现变异（Mutate）与随机化，并集成了频率动态滑移、颤音（Vibrato）与双二阶低通/高通数字滤波器；
 第三层为二进制容器与多端交付层：纯原生按字节级别打包符合 RFC / Microsoft 规范的 16 位与 8 位 PCM RIFF WAVE 二进制音频流，内置 Base64 Data URI 生成与极简乐符旋律音序器（MML Sequencer），直接赋能浏览器端与 Native 端发声。
 
-3、项目方向与通用性说明
-项目方向：MoonBit 基础库 / 多媒体与数字信号处理（DSP）基础设施 / 2D/3D 游戏开发基础构件。
-通用性说明：经对 mooncakes.io 官方包仓库与 GitHub 开源生态的全量排查检索，目前 MoonBit 开源生态在原生音频合成、音效发生器与数字音频编解码领域完全空白。现有的 WebAssembly 游戏或模拟器项目由于缺乏原生音频支持，大多只能保持无声或高度依赖复杂的宿主 JavaScript FFI。本项目作为底层纯数学与信号计算引擎，无需外部 C/Rust 动态库或宿主运行时注入，可无缝交叉编译至 WebAssembly、Native 及 JavaScript 目标平台，为未来 MoonBit 生态内的各类游戏框架（如 selene ECS）、模拟器、CLI 工具和 UI 交互组件提供通用的基础发声基座。
+3、项目走向及开发计划
+（1）项目走向定位：
+作为 MoonBit 官方包生态首个原生多媒体与数字信号处理（DSP）基础设施，成为 MoonBit 游戏生态（如 selene ECS 等）、模拟器、CLI 工具及 WebAssembly 网页应用通用的发声底层库。
+（2）开发计划与演进路线：
+第一阶段（当前已全部交付就绪）：完成核心音频底层建设与工具链打通。实现五大基础波形振荡器、4 段 ADSR 包络、sfxr 7 大经典音效预设、Biquad 滤波器与音效失真/延迟效果器、RIFF WAVE 二进制文件与 Data URI 编码、简易旋律音序器及交互式调音台演示；配置 26 组自动化测试与 GitHub Actions 持续集成流水线，实现 100% 测试通过率与全绿灯 CI。
+第二阶段（近期计划，2026 年 Q4）：官方生态接入与多平台深耕。发布至 MoonBit 官方包管理器 mooncakes.io；提供面向 WebAssembly / JS 运行时与前端 Web Audio API 的开箱即用范例；增加立体声声相定位（Stereo Panning）与多通道音频混音器（Multi-Channel Audio Mixer）。
+第三阶段（中长期规划，2027 年 Q1-Q2）：高级合成器架构与芯片音乐支持。引入轻量级 FM（调频合成）算法，支持真实乐器音色模拟；拓展芯片音乐格式解析（如经典 Tracker MOD/XM 或 MIDI 格式），构建 MoonBit 平台专属的综合性独立游戏音频中间件解决方案。
 
-4、至少3个完整的预期使用场景
-（1）WebAssembly 与 HTML5 网页游戏的纯原生即时音效生成：在无外部音效素材资源包的情况下，通过几十字节的紧凑参数结构体动态实时生成激光、爆炸、跳跃、金币等 8-bit / 16-bit 经典游戏音效，直接输出 PCM WAV 字节流交由 Web Audio API 播放，实现零素材加载（Asset-less）、零网络延迟的轻量化游戏音频系统。
-（2）桌面端与嵌入式界面的按键与提示音合成器：在 Native 编译环境下，为各类 CLI 命令行工具、桌面应用或微控制器界面提供操作反馈音效（如按键 Blip、成功提示音、错误告警脉冲等），直接将音频数据保存为本地标准 .wav 文件或推送到音频设备缓冲。
-（3）复古音乐与音序器（Chiptune / Tracker / MML）旋律回放：通过内置的乐符频率映射表（十二平均律半音计算）与简易多音轨音序器，按节拍调度播放复古风格的主题旋律与通关 BGM。
-（4）游戏开发者音效调优与可视化调音台（Audio Playground）：内置支持导出参数配置与 HTML5 交互式试听工作台，允许开发者在浏览器中实时调参、随机突变音效并一键下载 .wav 音频资源文件。
+4、面向AI编程的调研使用心得
+在本项目从架构设计、数学滤波算法实现到测试驱动开发的全流程中，深度结合了面向 AI 编程（AI-Native Programming）的前沿开发范式，主要调研与使用心得如下：
+第一，强类型系统与顶层显式签名显著降低大模型幻觉：
+在传统的动态脚本语言或类型推导过于隐式的语言中，AI 编程极易产生表面逻辑顺畅但运行时类型不匹配的深层 Bug。MoonBit 在语言设计上要求顶层函数与绑定具备显式的类型签名，这相当于为大语言模型（LLM）树立了极其明确的上下文边界。在生成复杂的数字信号处理算法（如双二阶 IIR 滤波器的双二次差分方程、ADSR 线性与对数过渡计算）时，AI 能精准把握输入与输出类型，有效避免了类型漂移与幻觉。
+第二，扁平语法与垃圾回收机制降低了大模型的认知负荷：
+相较于 Rust 复杂的生命周期标注（Lifetimes）与借用检查（Borrow Checker），MoonBit 汲取了函数式与现代系统语言的长处，采用了扁平化语法和高效 GC。这使得大模型在生成纯原生二进制流处理（如 RIFF WAVE 44 字节二进制头部构造、Base64 编解码）时，不需要在所有权转移上耗费海量上下文注意力，生成的代码更自然、更惯用（Idiomatic），开发吞吐效率极大提升。
+第三，毫秒级编译与内联测试构建了完美的自我修复闭环：
+面向 AI 编程最核心的痛点是“生成代码后的验证成本”。MoonBit 具备极速的增量编译（moon check）与内联测试能力（moon test）。在开发过程中，AI 工具链能够即时捕获编译器诊断信息（如弃用方法的精确告警、浮点字面量严格要求小数点等），并基于精准的报错迅速自主调整代码并重新运行测试，形成真正的“代码生成-编译诊断-自动修复-测试断言”全自动交付闭环。
+第四，现状总结与人机协同建议：
+MoonBit 展现出了下一代 AI 原生语言的巨大潜力。虽然目前公开开源语料库相较成熟语言偏少，偶有大模型套用早期语法的情况，但只要依托 MoonBit 严密的类型系统与测试闭环，人类开发者仅需关注高层次的架构意图，AI 即可高质、高效地完成复杂底层工程实现，生产力提升显著。
 
-5、拟实现的核心功能
-（1）基础数学波形振荡器（Oscillator）：
-1. Sine（正弦波）：纯净基频平滑波形；
-2. Square / Pulse（方波/脉冲波）：支持可配置占空比（Duty Cycle）与脉宽调制（PWM），产生浓郁的 8-bit / NES 风格复古质感；
-3. Sawtooth（锯齿波）：包含全频谐波，泛音明亮丰富；
-4. Triangle（三角波）：主要包含奇次谐波且衰减极快，适于低音及柔和音色；
-5. Noise（噪声发生器）：基于伪随机数发生器生成宽频白噪声，适于爆炸、碰撞与打击乐。
-（2）高精度声音包络器（ADSR Envelope Generator）：
-1. Attack（起音时间）、Decay（衰减时间）、Sustain（延音电平）、Release（释音时间）；
-2. 支持线性渐变与对数感知音量衰减过渡，彻底消除突变爆音（Click/Pop）；
-3. 提供预设触发（Trigger）与释音（Release）状态机。
-（3）经典过程化复古音效生成器（Procedural SFX Generator - sfxr 体系）：
-1. Laser（激光射击）：高频快速向下平滑滑移；
-2. Jump（跳跃）：低频向上阶跃滑移并伴随快速衰减；
-3. Explosion（爆炸）：白噪声结合低频谐振与长释放包络；
-4. Coin / Pickup（金币/拾取）：双频或三频短促阶梯跳跃；
-5. Hit / Hurt（受击/受伤）：方波与噪声混合结合剧烈俯冲音调；
-6. Powerup（能力升级）：多级升阶扫频序列；
-7. Blip / Select（界面点按）：极短高频方波脉冲；
-8. 具备确定性随机种子（Seed）的变异（Mutate）与随机化（Randomize）发生器。
-（4）数字信号效果器（DSP Effects）：
-1. 频率动态滑移（Frequency Slide / Drop / Delta）；
-2. 颤音发生器（Vibrato with Depth & Speed）；
-3. 双二阶数字低通与高通滤波器（Biquad Low-pass / High-pass Filter with Cutoff & Resonance）；
-4. 简易回声/混响延迟（Echo / Delay）；
-5. 柔和过载失真（Overdrive Distortion）；
-6. Lo-Fi 8-bit/12-bit 阶梯位深度量化与降采样位深度破坏器（Bitcrusher）。
-（5）标准 RIFF WAVE 二进制容器与流式打包器：
-1. 严格遵循 Microsoft RIFF WAVE / RFC 规范构造标准的 44 字节二进制头部信息；
-2. 支持 8-bit 无符号 PCM 与 16-bit 有符号 PCM 采样编码；
-3. 支持 44100Hz、22050Hz 等主流采样率，单声道与立体声输出；
-4. 提供 Base64 Data URI 生成器（可直接嵌入网页 audio 标签或 JS Audio 对象播放）。
-（6）旋律音序器（MML / Melodic Sequencer）：
-1. 乐音音高转频率映射（C0 ~ B8，涵盖 12 平均律半音）；
-2. 节拍 BPM 与音符时值（全音符、二分、四分、八分、十六分音符及休止符）调度；
-3. 多音符时序串联与多音轨混音（Mixing）。
+5、代码完整度（选填）
+代码完整度评估：100%（全核心功能实现完毕，工程达到生产就绪与开箱即用状态）
+具体达成指标如下：
+1. 功能模块完整：实现了基础数据类型（AudioBuffer）、波形振荡器（Oscillator）、ADSR 包络器、DSP 滤波/效果器（Biquad IIR Filter, Distortion, Delay, Bitcrusher）、sfxr 7 大经典预设与变异器、标准 16 位/8 位 RIFF WAVE 编码器、Base64 Data URI 生成器、MML 乐符音序器、HTML5 交互式试听工作室以及 CLI 演示命令行程序；项目中无任何占位函数或 TODO 待办项。
+2. 自动化测试完整：全项目内置 26 组覆盖全面的单元测试与百万采样级性能基准测试，覆盖波形精确度、包络状态机、数字滤波截止频率、二进制容器合规性与音序调度，测试通过率 100%。
+3. 工程规范与持续集成完整：仓库配备中英文双语技术文档、Apache-2.0 开源许可证、.gitignore 忽略规则，并在 .github/workflows/ci.yml 中配置了自动化持续集成流水线，静态检查、构建、测试与 CLI 执行均在云端通过全绿灯验证。
 
-6、是否为原创项目、移植项目或参考已有开源项目
-本项目为基于经典算法架构的深度移植与增强创新项目。
+6、是否为原创项目，移植项目必须声明原项目
+本项目为基于经典音频算法架构的深度重构、移植与增强创新项目。
 
-7、如为移植项目，需说明参考项目名称，简要说明改造计划
-（1）参考项目信息：
-参考项目一：sfxr（C++ 实现，Tomas Pettersson 原创复古音效生成器）
-来源链接：https://github.com/grimfang4/sfxr
-许可证：Public Domain
+7、如为移植项目，需说明参考项目名称，并阐明版权许可
+（1）参考项目信息与版权声明：
+参考项目一：sfxr（C++ 实现，Tomas Pettersson 原创复古游戏音效发生器）
+项目主页：https://github.com/grimfang4/sfxr
+原项目许可证：Public Domain（公有领域许可，允许无限制衍生与商业应用）
 参考项目二：jsfxr（JavaScript 移植与 Web Audio 适配版）
-来源链接：https://github.com/chr15m/jsfxr
-许可证：Apache-2.0
-本项目许可证：Apache-2.0
-（2）改造与增强计划：
-第一，类型系统与内存安全重构：彻底摒弃原版 C 语言中使用的大量隐式全局状态变量与裸浮点指针运算，利用 MoonBit 的代数数据类型（Enum）、不可变数据结构与模式匹配进行类型安全与内存安全重构；
-第二，分层解耦与模块化设计：原版 sfxr 将波形、包络、UI 与回放逻辑高度耦合，本项目将其彻底解耦为振荡器模块、包络模块、DSP 滤波模块、过程化预设发生器以及 WAV 容器编码器，每个模块均可单独引用测试；
-第三，增强 ADSR 包络与现代数字滤波：突破原版仅支持简单 Attack/Sustain/Decay 3 段且无法单独配置释音斜率的局限，提供完整 4 段 ADSR 并引入具有谐振峰调节能力的双二阶数字滤波器；
-第四，新增乐符频率换算与旋律音序器：原版仅能生成单发独立音效，本项目创新性引入了乐符音阶换算（十二平均律）与轻量音序器，使得游戏通关旋律、简单 BGM 编排成为可能；
-第五，原生二进制打包与开箱即用多端输出：无需依赖操作系统底层音频驱动即可在内存中直接生成规范的 RIFF WAV 二进制流，且配套提供 Base64 Data URI 与交互式 HTML5 调音台演示。
+项目主页：https://github.com/chr15m/jsfxr
+原项目许可证：Apache License 2.0
+本项目许可证：Apache License 2.0（完全遵循开源合规要求，保证学术与产业界的自由使用）
+（2）重构与创新计划说明：
+第一，类型安全与纯函数式重写：原版 C/JS 项目充斥着大量不可追踪的隐式全局变量和裸浮点数运算，本项目利用 MoonBit 的代数数据类型（Enum）、模式匹配与类型系统进行彻底重构，实现零全局副作用与内存安全；
+第二，分层解耦与模块化重构：原版 sfxr 将界面、波形计算与音频回放强耦合，本项目解耦为振荡器、声音包络、数字信号滤波、音效预设及二进制打包五个独立子模块，均可单独集成复用；
+第三，增强专业级声音包络与数字滤波：由原版简陋的 3 段包络升级为具备线性与对数过渡的 4 段式完整 ADSR，并增加了具有共振峰特性的双二阶 IIR 低通/高通滤波器与位深度破坏器（Bitcrusher）；
+第四，创新集成十二平均律音序器：原版仅能生成孤立单音，本项目开创性地增加了乐音频率转换器与多音符时值调度音序器，使得游戏通关号角与复古 BGM 编排成为可能；
+第五，原生二进制打包与开箱即用：摆脱对外部 C/Rust 本地库或宿主 JS 播放器的强依赖，纯原生按规范生成 44 字节二进制 RIFF WAVE 字节流，支持直接下载并提供 Base64 Data URI 与 HTML 调音台。
 
-8、GitHub 仓库链接，需有至少 10 个有效 commits，文档需包含英文和中文，仓库须配置自动化测试流水线
+8、GitHub 仓库链接，需不少于 10 个有效commits，并必须包含中英文双语文档、完整的文档和完整的测试样例
 GitHub 仓库链接：https://github.com/zmjknn/moon_sfx
-有效提交记录（Commits）：仓库已包含 13 个独立、语义明确的规范提交（涵盖 core 架构、synth 振荡器、envelope 包络、dsp 滤波、sfxr 预设、wav 编码、sequencer 音序器、export 工具、cli 终端应用、tests 测试集与 CI 流水线），提交遵循 Conventional Commits 规范，绝无无意义拆分。
-中英文双语文档：仓库已完整配备详实的中文文档与英文技术文档：
-中文说明：PROPOSAL.md（项目申报书）与 README.md 中文架构解析；
-英文文档：README.md 与 README.mbt.md（包含完整 API Reference、使用范例与架构设计说明）。
-自动化测试流水线（CI）：仓库已在 .github/workflows/ci.yml 中配置完整的 GitHub Actions CI 流水线。包含 26 组全覆盖单元与基准测试（moon test）、项目静态检查（moon check）、工程构建（moon build）与 CLI 演示执行（moon run cmd/main）。当前流水线全部处于 全绿灯通过（Status: Completed, Conclusion: Success）状态。
+有效 Commits 数量：累计拥有 14 个独立、语义明确的规范提交（涵盖 core 架构、synth 振荡器、envelope 包络、dsp 滤波、sfxr 预设、wav 编码、sequencer 音序器、export 工具、cli 终端应用、tests 测试集与 CI 流水线），严格遵循 Conventional Commits 规范，无无意义拆分。
+中英文双语文档：
+中文文档：PROPOSAL.md（项目完整申报书）与 README.md（中文系统架构图解与设计思想）；
+英文文档：README.md 与 README.mbt.md（提供完整 Quick Start、API Reference、架构分层与使用范例）。
+完整的测试样例与自动化 CI 流水线：
+仓库内置 26 组自动化测试用例，覆盖全部核心算法与极端边界条件，使用 moon test 一键执行全量测试；已在 .github/workflows/ci.yml 中建立 GitHub Actions 自动化 CI，全套编译、静态检查、单元测试及 CLI 演示验证均保持全绿灯通过（Status: Completed, Conclusion: Success）。
