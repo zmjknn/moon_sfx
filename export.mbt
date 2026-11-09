@@ -55,6 +55,14 @@ pub fn play_blip_wav(seed : UInt) -> Bytes {
 }
 
 ///|
+/// Quick one-liner helper to generate a Periodic Repeating Burst sound effect WAV byte array.
+pub fn play_burst_wav(seed : UInt) -> Bytes {
+  let params = SfxParams::burst(seed)
+  let buffer = params.synthesize(44100)
+  encode_wav_16bit(buffer)
+}
+
+///|
 /// Generates a complete, self-contained interactive HTML5 audio playground page with embedded base64 sounds.
 pub fn generate_html_playground() -> String {
   let laser_uri = SfxParams::laser(1U).synthesize(44100).to_data_uri()
@@ -64,6 +72,7 @@ pub fn generate_html_playground() -> String {
   let hit_uri = SfxParams::hit(5U).synthesize(44100).to_data_uri()
   let powerup_uri = SfxParams::powerup(6U).synthesize(44100).to_data_uri()
   let blip_uri = SfxParams::blip(7U).synthesize(44100).to_data_uri()
+  let burst_uri = SfxParams::burst(8U).synthesize(44100).to_data_uri()
 
   let fanfare_score = Score::victory_fanfare()
   let fanfare_buffer = render_score(
@@ -127,6 +136,7 @@ pub fn generate_html_playground() -> String {
   add_card("Hit / Hurt", "SFXR PRESET", "Crunchy noise burst with rapid downward frequency plunge.", hit_uri)
   add_card("Powerup", "SFXR PRESET", "Triumphant ascending saw slide accompanied by vibrato modulation.", powerup_uri)
   add_card("UI Blip", "SFXR PRESET", "Ultra-short high pitch click designed for menu navigation.", blip_uri)
+  add_card("Repeating Burst", "REPEAT & PHASER", "Rapid cycle-repeating burst demonstrating periodic repeat speed and phaser sweep.", burst_uri)
   add_card("Victory Fanfare", "SEQUENCER MELODY", "Multi-note 8-bit victory melody rendered via the built-in MML sequencer.", fanfare_uri)
   add_card("FM Electric Piano", "FM SYNTHESIS", "Yamaha DX7 style 1:1 harmonic ratio FM electric piano with percussive metallic chime.", fm_piano_uri)
   add_card("FM Crystal Bell", "FM SYNTHESIS", "Inharmonic metallic church bell with resonant physical frequency modulation.", fm_bell_uri)

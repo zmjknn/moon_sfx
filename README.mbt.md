@@ -3,7 +3,7 @@
 [![CI](https://github.com/zmjknn/moon_sfx/actions/workflows/ci.yml/badge.svg)](https://github.com/zmjknn/moon_sfx/actions/workflows/ci.yml)
 [![MoonBit](https://img.shields.io/badge/MoonBit-0.1.20261016-purple.svg)](https://www.moonbitlang.com)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-40%20passed-brightgreen.svg)](https://github.com/zmjknn/moon_sfx)
+[![Tests](https://img.shields.io/badge/Tests-46%20passed-brightgreen.svg)](https://github.com/zmjknn/moon_sfx)
 [![Dependencies](https://img.shields.io/badge/Dependencies-Zero-success.svg)](moon.mod)
 
 `moon_sfx` is an industrial-grade, zero-dependency procedural audio synthesizer, 8-bit retro game sound FX generator, and Microsoft RIFF WAVE binary encoder implemented in 100% pure [MoonBit](https://www.moonbitlang.com).
@@ -32,8 +32,15 @@ Targeted at WebAssembly browser games, indie cross-platform engines, UI interact
 - **Click-Free Transitions**: Graceful release ramping prevents waveform discontinuity pops and clicks.
 
 ### 3. Procedural SFXR Retro Sound Generator (`sfxr.mbt`)
-Ported, refactored, and type-safety enhanced from Tomas Pettersson's legendary `sfxr` algorithm:
-- **7 Classic Game Sound FX Presets**:
+Ported, refactored, and type-safety enhanced with 100% mathematical algorithm coverage of Tomas Pettersson's legendary `sfxr`:
+- **Core SFXR Algorithmic Pillars Fully Supported**:
+  - **频率滑动 (Frequency Slide & Delta Slide)**: Exponential frequency sweep with acceleration drift (`freq_slide`, `freq_delta_slide`).
+  - **颤音 (Vibrato LFO)**: Sinusoidal low-frequency pitch modulation with configurable depth and rate (`vibrato_depth`, `vibrato_speed`).
+  - **音高突变 (Pitch Jump / Arpeggio)**: Instantaneous pitch interval shift at programmable timeline offsets (`change_amount`, `change_time`).
+  - **周期重复 (Cycle Repeat)**: Periodic envelope and frequency reset loop creating rapid stutter, laser bursts, and machine-gun tremolo effects (`repeat_speed`).
+  - **Phaser (Comb Filtering & Phase Sweep)**: 1024-sample circular delay line with dynamic phase offset sweep creating sweeping jet-engine comb notch filters (`phaser_offset`, `phaser_sweep`).
+  - **滤波扫描 (Dynamic Low-Pass & High-Pass Filter Sweeping)**: Dynamic cutoff modulation per sample frame for both low-pass and high-pass filters (`lpf_cutoff`, `lpf_sweep`, `hpf_cutoff`, `hpf_sweep`).
+- **8 Classic Game Sound FX Presets**:
   - `laser(seed)`: Rapid downward frequency sweep with square/sawtooth timbre.
   - `jump(seed)`: Upward pitch jump with snappy decay.
   - `explosion(seed)`: Resonant low-pass filtered noise with heavy sustain punch.
@@ -41,6 +48,7 @@ Ported, refactored, and type-safety enhanced from Tomas Pettersson's legendary `
   - `hit(seed)`: Crunchy noise/square impact with steep pitch plunge.
   - `powerup(seed)`: Ascending multi-harmonic saw slide with vibrato modulation.
   - `blip(seed)`: Ultra-short high-frequency click for UI menus.
+  - `burst(seed)`: Rapid cyclic repeating multi-stage burst demonstrating cycle repetition and phaser sweep.
 - **Deterministic Mutator (`mutate`)**: Perturbs existing parameters within specified intensity `[0.0, 1.0]` using reproducible PRNG seeds.
 - **Wild Randomizer (`randomize`)**: Generates completely unexpected sound parameters for creative sound design.
 
@@ -198,6 +206,7 @@ Output preview:
   - Hit / Damage: 23414 bytes (11685 samples, 264 ms)
   - Powerup: 53430 bytes (26693 samples, 605 ms)
   - UI Blip Click: 8792 bytes (4374 samples, 99 ms)
+  - Repeating Burst: 35500 bytes (17728 samples, 401 ms)
 
 2. Demonstrating Core Waveform Oscillators:
   - Sine (440Hz): 8864 bytes
@@ -228,7 +237,14 @@ Output preview:
 
 ## Verification & Testing
 
-The package includes 40 deterministic unit, invariant, and round-trip tests covering:
+The package includes 46 deterministic unit, invariant, and round-trip tests covering:
+- Tomas Pettersson SFXR complete algorithm parity:
+  - 频率滑动 (Frequency slide & delta acceleration slide)
+  - 颤音 (Vibrato LFO depth & speed pitch modulation)
+  - 音高突变 (Pitch jump arpeggio step & timing)
+  - 周期重复 (Cycle repeat periodic envelope & frequency loop reset)
+  - Phaser (1024-sample circular comb filter phase sweep)
+  - 滤波扫描 (Dynamic Low-Pass & High-Pass cutoff sweep modulation)
 - Mathematical waveform phase boundary accuracy
 - Robert Bristow-Johnson biquad filter stability
 - ADSR envelope phase transitions (Attack, Decay, Sustain, Release)
@@ -249,7 +265,7 @@ moon test
 
 Result:
 ```text
-Total tests: 40, passed: 40, failed: 0.
+Total tests: 46, passed: 46, failed: 0.
 ```
 
 ---

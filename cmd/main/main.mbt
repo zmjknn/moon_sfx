@@ -17,6 +17,7 @@ fn main {
     ("Hit / Damage", @lib.play_hit_wav(505U)),
     ("Powerup", @lib.play_powerup_wav(606U)),
     ("UI Blip Click", @lib.play_blip_wav(707U)),
+    ("Repeating Burst", @lib.play_burst_wav(808U)),
   ]
 
   for p in presets {

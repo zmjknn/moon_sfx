@@ -9,11 +9,11 @@ pub(all) enum FilterType {
 ///|
 /// Digital biquad IIR filter implementing Robert Bristow-Johnson Audio EQ Cookbook algorithms.
 pub struct BiquadFilter {
-  b0 : Double
-  b1 : Double
-  b2 : Double
-  a1 : Double
-  a2 : Double
+  mut b0 : Double
+  mut b1 : Double
+  mut b2 : Double
+  mut a1 : Double
+  mut a2 : Double
   mut x1 : Double
   mut x2 : Double
   mut y1 : Double
@@ -77,6 +77,64 @@ pub fn BiquadFilter::new(
   let norm_a2 = a2 / a0
 
   { b0, b1, b2, a1: norm_a1, a2: norm_a2, x1: 0.0, x2: 0.0, y1: 0.0, y2: 0.0 }
+}
+
+///|
+/// Dynamically updates the cutoff frequency and recalculates filter coefficients.
+/// Enables continuous dynamic filter sweeping during audio rendering without allocating new objects.
+pub fn BiquadFilter::update_cutoff(
+  self : BiquadFilter,
+  filter_type : FilterType,
+  cutoff_freq : Double,
+  resonance_q : Double,
+  sample_rate : Int
+) -> Unit {
+  let sr = if sample_rate <= 0 { 44100.0 } else { sample_rate.to_double() }
+  let nyquist = sr * 0.5
+  let cutoff = if cutoff_freq <= 10.0 {
+    10.0
+  } else if cutoff_freq >= nyquist - 100.0 {
+    nyquist - 100.0
+  } else {
+    cutoff_freq
+  }
+  let q = if resonance_q <= 0.1 { 0.1 } else { resonance_q }
+
+  let w0 = two_pi * cutoff / sr
+  let cos_w0 = @math.cos(w0)
+  let sin_w0 = @math.sin(w0)
+  let alpha = sin_w0 / (2.0 * q)
+
+  let mut b0 = 0.0
+  let mut b1 = 0.0
+  let mut b2 = 0.0
+  let a0 = 1.0 + alpha
+  let a1 = -2.0 * cos_w0
+  let a2 = 1.0 - alpha
+
+  match filter_type {
+    LowPass => {
+      b0 = (1.0 - cos_w0) * 0.5
+      b1 = 1.0 - cos_w0
+      b2 = (1.0 - cos_w0) * 0.5
+    }
+    HighPass => {
+      b0 = (1.0 + cos_w0) * 0.5
+      b1 = -(1.0 + cos_w0)
+      b2 = (1.0 + cos_w0) * 0.5
+    }
+    BandPass => {
+      b0 = alpha
+      b1 = 0.0
+      b2 = -alpha
+    }
+  }
+
+  self.b0 = b0 / a0
+  self.b1 = b1 / a0
+  self.b2 = b2 / a0
+  self.a1 = a1 / a0
+  self.a2 = a2 / a0
 }
 
 ///|
