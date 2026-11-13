@@ -257,3 +257,135 @@ test "readme_example_execution_verification" {
   let data_uri = audio.to_data_uri()
   assert_true(data_uri.length() > 50)
 }
+
+///|
+test "wav_empty_buffer_roundtrip" {
+  let empty_buf = AudioBuffer::new(44100, 0)
+  assert_eq(empty_buf.length(), 0)
+
+  // 16-bit mono
+  let wav16 = encode_wav_16bit(empty_buf)
+  assert_eq(wav16.length(), 44)
+  let info16 = inspect_wav(wav16).unwrap()
+  assert_eq(info16.num_samples, 0)
+  assert_eq(info16.duration, 0.0)
+  let dec16 = decode_wav(wav16).unwrap()
+  assert_eq(dec16.length(), 0)
+
+  // 8-bit mono
+  let wav8 = encode_wav_8bit(empty_buf)
+  assert_eq(wav8.length(), 44)
+  let info8 = inspect_wav(wav8).unwrap()
+  assert_eq(info8.num_samples, 0)
+  let dec8 = decode_wav(wav8).unwrap()
+  assert_eq(dec8.length(), 0)
+
+  // Stereo
+  let empty_stereo = StereoBuffer::new(44100, 0)
+  let wav_stereo = encode_wav_stereo_16bit(empty_stereo)
+  assert_eq(wav_stereo.length(), 44)
+  let info_stereo = inspect_wav(wav_stereo).unwrap()
+  assert_eq(info_stereo.num_channels, 2)
+  assert_eq(info_stereo.num_samples, 0)
+  let dec_stereo = decode_wav_stereo(wav_stereo).unwrap()
+  assert_eq(dec_stereo.length(), 0)
+}
+
+///|
+fn[T, E] is_err(res : Result[T, E]) -> Bool {
+  match res {
+    Ok(_) => false
+    Err(_) => true
+  }
+}
+
+///|
+test "wav_corrupted_headers_error_handling" {
+  // 1. Shorter than 44 bytes
+  let short_bytes = Bytes::make(20, b'\x00')
+  assert_true(is_err(inspect_wav(short_bytes)))
+  assert_true(is_err(decode_wav(short_bytes)))
+
+  // 2. Invalid RIFF magic
+  let bad_riff = Bytes::make(44, b'\x00')
+  assert_true(is_err(inspect_wav(bad_riff)))
+
+  // 3. Invalid WAVE magic
+  let list = []
+  for _ in 0..<44 {
+    list.push(b'\x00')
+  }
+  list[0] = b'R'
+  list[1] = b'I'
+  list[2] = b'F'
+  list[3] = b'F'
+  list[8] = b'B'
+  list[9] = b'A'
+  list[10] = b'D'
+  list[11] = b'!'
+  let bad_wave = Bytes::from_array(list)
+  assert_true(is_err(inspect_wav(bad_wave)))
+}
+
+///|
+test "dsp_effects_boundary_parameters" {
+  let buf = AudioBuffer::new(44100, 100)
+  for _ in 0..<100 {
+    buf.push(0.5)
+  }
+
+  // Extreme filter parameters
+  buf.apply_filter(LowPass, -100.0, -1.0)
+  buf.apply_filter(HighPass, 50000.0, 10.0)
+  buf.apply_filter(BandPass, 1000.0, 0.05)
+
+  // Overdrive with negative drive
+  buf.apply_overdrive(-5.0)
+
+  // Echo with boundary parameters
+  buf.apply_echo(-1.0, -0.5, -0.2)
+  buf.apply_echo(0.0001, 1.5, 2.0)
+
+  // Bitcrusher with boundary parameters
+  buf.apply_bitcrush(1, 0)
+  buf.apply_bitcrush(32, 100)
+
+  // Verify all samples remain finite
+  for i = 0; i < buf.length(); i = i + 1 {
+    let s = buf.get(i)
+    assert_true(!s.is_nan())
+    assert_true(!s.is_inf())
+  }
+}
+
+///|
+test "adsr_curves_boundary_times" {
+  let adsr = ADSR::new(0.05, 0.05, 0.7, 0.05)
+
+  // Negative time or time beyond duration
+  assert_eq(adsr.gain_at(-1.0, 1.0, Linear), 0.0)
+  assert_eq(adsr.gain_at(2.0, 1.0, Linear), 0.0)
+  assert_eq(adsr.gain_at(0.5, 0.0, Linear), 0.0)
+
+  // Linear and Exponential curves within [0.0, 1.0]
+  for i = 0; i <= 20; i = i + 1 {
+    let t = i.to_double() * 0.05
+    let gl = adsr.gain_at(t, 1.0, Linear)
+    let ge = adsr.gain_at(t, 1.0, Exponential)
+    assert_true(gl >= 0.0 && gl <= 1.0)
+    assert_true(ge >= 0.0 && ge <= 1.0)
+  }
+}
+
+///|
+test "mml_malformed_input_graceful" {
+  // Empty MML string
+  let (empty_score, empty_bpm) = parse_mml("")
+  assert_eq(empty_bpm, 120)
+  assert_eq(empty_score.length(), 0)
+
+  // Malformed characters and symbols
+  let (weird_score, weird_bpm) = parse_mml("!@#$%^&*()_+=~`{}[]:;'\"/?.,<>")
+  assert_eq(weird_bpm, 120)
+  assert_eq(weird_score.length(), 0)
+}

@@ -50,7 +50,8 @@ pub fn sample_waveform(
   rng : Rng,
 ) -> Double {
   // Wrap phase into [0.0, 1.0)
-  let p = phase - phase.floor()
+  let raw_p = phase - phase.floor()
+  let p = if raw_p < 0.0 { 0.0 } else if raw_p >= 1.0 { 0.0 } else { raw_p }
   match waveform {
     Sine => @math.sin(p * two_pi)
     Square(duty) => {

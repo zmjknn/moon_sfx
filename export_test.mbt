@@ -20,6 +20,9 @@ test "play_all_presets_wav" {
 
   let blip = play_blip_wav(7U)
   assert_true(blip.length() > 44)
+
+  let burst = play_burst_wav(8U)
+  assert_true(burst.length() > 44)
 }
 
 ///|

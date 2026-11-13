@@ -3,7 +3,7 @@
 [![CI](https://github.com/zmjknn/moon_sfx/actions/workflows/ci.yml/badge.svg)](https://github.com/zmjknn/moon_sfx/actions/workflows/ci.yml)
 [![MoonBit](https://img.shields.io/badge/MoonBit-0.1.20261016-purple.svg)](https://www.moonbitlang.com)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-53%20passed-brightgreen.svg)](https://github.com/zmjknn/moon_sfx)
+[![Tests](https://img.shields.io/badge/Tests-58%20passed-brightgreen.svg)](https://github.com/zmjknn/moon_sfx)
 [![Dependencies](https://img.shields.io/badge/Dependencies-Zero-success.svg)](moon.mod)
 
 `moon_sfx` is an industrial-grade, zero-dependency procedural audio synthesizer, 8-bit retro game sound FX generator, and Microsoft RIFF WAVE binary encoder implemented in 100% pure [MoonBit](https://www.moonbitlang.com).
@@ -137,7 +137,7 @@ Or declare it in your `moon.mod.json`:
 ```json
 {
   "deps": {
-    "zmjknn/moon_sfx": "0.1.1"
+    "zmjknn/moon_sfx": "0.1.2"
   }
 }
 ```
@@ -261,7 +261,7 @@ Output preview:
 
 ## Verification & Testing
 
-The package includes 53 deterministic unit, invariant, and round-trip tests covering:
+The package includes 58 deterministic unit, invariant, and round-trip tests covering:
 - Tomas Pettersson SFXR complete algorithm parity:
   - 频率滑动 (Frequency slide & delta acceleration slide)
   - 颤音 (Vibrato LFO depth & speed pitch modulation)
@@ -272,6 +272,8 @@ The package includes 53 deterministic unit, invariant, and round-trip tests cove
 - Extreme parameter resilience and defensive guards (zero division, infinite loop, negative envelope/frequency/phaser sweeps)
 - Word-aligned odd-length RIFF chunk padding support
 - Strict stereo pan isolation invariants (pure left/right channel silence)
+- Corrupted WAV header detection and graceful error handling
+- Zero-sample empty buffer roundtrip encoding/decoding safety
 - Mathematical waveform phase boundary accuracy
 - Robert Bristow-Johnson biquad filter stability
 - ADSR envelope phase transitions (Attack, Decay, Sustain, Release)

@@ -185,9 +185,9 @@ pub fn to_base64(bytes : Bytes) -> String {
   let sb = StringBuilder()
   let mut i = 0
   while i < len {
-    let b0 = bytes[i].to_int()
-    let b1 = if i + 1 < len { bytes[i + 1].to_int() } else { 0 }
-    let b2 = if i + 2 < len { bytes[i + 2].to_int() } else { 0 }
+    let b0 = bytes[i].to_int() & 0xff
+    let b1 = if i + 1 < len { bytes[i + 1].to_int() & 0xff } else { 0 }
+    let b2 = if i + 2 < len { bytes[i + 2].to_int() & 0xff } else { 0 }
 
     let triplet = (b0 << 16) | (b1 << 8) | b2
 
