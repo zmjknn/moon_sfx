@@ -1,13 +1,13 @@
 ///|
 /// Writes a 16-bit unsigned integer into FixedArray[Byte] in Little-Endian order.
-fn write_u16_le(b : FixedArray[Byte], offset : Int, val : Int) -> Unit {
+pub fn write_u16_le(b : FixedArray[Byte], offset : Int32, val : Int32) -> Unit {
   b[offset] = (val & 0xff).to_byte()
   b[offset + 1] = ((val >> 8) & 0xff).to_byte()
 }
 
 ///|
 /// Writes a 32-bit integer into FixedArray[Byte] in Little-Endian order.
-fn write_u32_le(b : FixedArray[Byte], offset : Int, val : Int) -> Unit {
+pub fn write_u32_le(b : FixedArray[Byte], offset : Int32, val : Int32) -> Unit {
   b[offset] = (val & 0xff).to_byte()
   b[offset + 1] = ((val >> 8) & 0xff).to_byte()
   b[offset + 2] = ((val >> 16) & 0xff).to_byte()
@@ -169,11 +169,10 @@ pub fn encode_wav_8bit(buffer : AudioBuffer) -> Bytes {
 
 ///|
 let base64_table : FixedArray[Char] = [
-  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-  'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',
-  'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-  't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7',
-  '8', '9', '+', '/',
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+  'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+  'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+  'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/',
 ]
 
 ///|
@@ -295,12 +294,20 @@ pub fn encode_wav_stereo_16bit(stereo : StereoBuffer) -> Bytes {
   let right_samples = stereo.right.samples
   for i = 0; i < num_samples; i = i + 1 {
     let mut sl = if i < left_samples.length() { left_samples[i] } else { 0.0 }
-    if sl > 1.0 { sl = 1.0 } else if sl < -1.0 { sl = -1.0 }
+    if sl > 1.0 {
+      sl = 1.0
+    } else if sl < -1.0 {
+      sl = -1.0
+    }
     let pcml = (sl * 32767.0).to_int()
     write_u16_le(b, 44 + i * 4, pcml)
 
     let mut sr = if i < right_samples.length() { right_samples[i] } else { 0.0 }
-    if sr > 1.0 { sr = 1.0 } else if sr < -1.0 { sr = -1.0 }
+    if sr > 1.0 {
+      sr = 1.0
+    } else if sr < -1.0 {
+      sr = -1.0
+    }
     let pcmr = (sr * 32767.0).to_int()
     write_u16_le(b, 44 + i * 4 + 2, pcmr)
   }
@@ -321,17 +328,18 @@ pub fn StereoBuffer::to_data_uri(self : StereoBuffer) -> String {
 
 ///|
 /// Metadata information parsed from a standard RIFF WAVE file header.
+#derive(Eq, Debug)
 pub struct WavInfo {
-  sample_rate : Int
-  num_channels : Int
-  bits_per_sample : Int
-  num_samples : Int
+  sample_rate : Int32
+  num_channels : Int32
+  bits_per_sample : Int32
+  num_samples : Int32
   duration : Double
-} derive(Eq, Debug)
+}
 
 ///|
 /// Reads a 16-bit unsigned integer from Bytes in Little-Endian order.
-fn read_u16_le(bytes : Bytes, offset : Int) -> Int {
+fn read_u16_le(bytes : Bytes, offset : Int32) -> Int32 {
   let b0 = bytes[offset].to_int() & 0xff
   let b1 = bytes[offset + 1].to_int() & 0xff
   b0 | (b1 << 8)
@@ -339,7 +347,7 @@ fn read_u16_le(bytes : Bytes, offset : Int) -> Int {
 
 ///|
 /// Reads a 32-bit unsigned integer from Bytes in Little-Endian order.
-fn read_u32_le(bytes : Bytes, offset : Int) -> Int {
+fn read_u32_le(bytes : Bytes, offset : Int32) -> Int32 {
   let b0 = bytes[offset].to_int() & 0xff
   let b1 = bytes[offset + 1].to_int() & 0xff
   let b2 = bytes[offset + 2].to_int() & 0xff
@@ -354,11 +362,17 @@ pub fn inspect_wav(bytes : Bytes) -> Result[WavInfo, String] {
     return Err("Invalid WAV file: size is less than 44-byte standard header")
   }
   // Check "RIFF"
-  if bytes[0] != b'R' || bytes[1] != b'I' || bytes[2] != b'F' || bytes[3] != b'F' {
+  if bytes[0] != b'R' ||
+    bytes[1] != b'I' ||
+    bytes[2] != b'F' ||
+    bytes[3] != b'F' {
     return Err("Invalid WAV file: missing 'RIFF' magic signature")
   }
   // Check "WAVE"
-  if bytes[8] != b'W' || bytes[9] != b'A' || bytes[10] != b'V' || bytes[11] != b'E' {
+  if bytes[8] != b'W' ||
+    bytes[9] != b'A' ||
+    bytes[10] != b'V' ||
+    bytes[11] != b'E' {
     return Err("Invalid WAV file: missing 'WAVE' format signature")
   }
   // Search for fmt and data chunks
@@ -376,12 +390,17 @@ pub fn inspect_wav(bytes : Bytes) -> Result[WavInfo, String] {
     let c2 = bytes[offset + 2]
     let c3 = bytes[offset + 3]
     let chunk_len = read_u32_le(bytes, offset + 4)
+    if chunk_len < 0 {
+      return Err("Corrupted WAV file: invalid negative chunk length")
+    }
 
     if c0 == b'f' && c1 == b'm' && c2 == b't' && c3 == b' ' {
       fmt_found = true
       let audio_format = read_u16_le(bytes, offset + 8)
       if audio_format != 1 {
-        return Err("Unsupported WAV compression format: only uncompressed PCM (format=1) is supported")
+        return Err(
+          "Unsupported WAV compression format: only uncompressed PCM (format=1) is supported",
+        )
       }
       num_channels = read_u16_le(bytes, offset + 10)
       sample_rate = read_u32_le(bytes, offset + 12)
@@ -392,7 +411,8 @@ pub fn inspect_wav(bytes : Bytes) -> Result[WavInfo, String] {
       break
     }
 
-    offset = offset + 8 + chunk_len
+    let padded_len = if chunk_len % 2 == 1 { chunk_len + 1 } else { chunk_len }
+    offset = offset + 8 + padded_len
   }
 
   if !fmt_found {
@@ -405,15 +425,13 @@ pub fn inspect_wav(bytes : Bytes) -> Result[WavInfo, String] {
   let bytes_per_sample = bits_per_sample / 8
   let block_align = num_channels * bytes_per_sample
   let num_samples = if block_align > 0 { data_size / block_align } else { 0 }
-  let duration = if sample_rate > 0 { num_samples.to_double() / sample_rate.to_double() } else { 0.0 }
+  let duration = if sample_rate > 0 {
+    num_samples.to_double() / sample_rate.to_double()
+  } else {
+    0.0
+  }
 
-  Ok({
-    sample_rate,
-    num_channels,
-    bits_per_sample,
-    num_samples,
-    duration,
-  })
+  Ok({ sample_rate, num_channels, bits_per_sample, num_samples, duration, })
 }
 
 ///|
@@ -426,19 +444,28 @@ pub fn decode_wav(bytes : Bytes) -> Result[AudioBuffer, String] {
   }
 
   if info.bits_per_sample != 16 && info.bits_per_sample != 8 {
-    return Err("Unsupported bit depth: only 16-bit signed and 8-bit unsigned PCM are supported")
+    return Err(
+      "Unsupported bit depth: only 16-bit signed and 8-bit unsigned PCM are supported",
+    )
   }
 
   // Find data offset
   let mut offset = 12
   let mut data_offset = 44
   while offset + 8 <= bytes.length() {
-    if bytes[offset] == b'd' && bytes[offset + 1] == b'a' && bytes[offset + 2] == b't' && bytes[offset + 3] == b'a' {
+    if bytes[offset] == b'd' &&
+      bytes[offset + 1] == b'a' &&
+      bytes[offset + 2] == b't' &&
+      bytes[offset + 3] == b'a' {
       data_offset = offset + 8
       break
     }
     let chunk_len = read_u32_le(bytes, offset + 4)
-    offset = offset + 8 + chunk_len
+    if chunk_len < 0 {
+      break
+    }
+    let padded_len = if chunk_len % 2 == 1 { chunk_len + 1 } else { chunk_len }
+    offset = offset + 8 + padded_len
   }
 
   let samples = Array::make(info.num_samples, 0.0)
@@ -484,7 +511,7 @@ pub fn decode_wav(bytes : Bytes) -> Result[AudioBuffer, String] {
     }
   }
 
-  Ok({ sample_rate: info.sample_rate, samples })
+  Ok({ sample_rate: info.sample_rate, samples, })
 }
 
 ///|
@@ -496,7 +523,10 @@ pub fn decode_wav_stereo(bytes : Bytes) -> Result[StereoBuffer, String] {
   }
 
   if info.num_channels != 2 {
-    return Err("Expected 2-channel stereo WAV file, but found channel count: " + info.num_channels.to_string())
+    return Err(
+      "Expected 2-channel stereo WAV file, but found channel count: " +
+      info.num_channels.to_string(),
+    )
   }
   if info.bits_per_sample != 16 && info.bits_per_sample != 8 {
     return Err("Unsupported bit depth: only 16-bit and 8-bit are supported")
@@ -505,12 +535,19 @@ pub fn decode_wav_stereo(bytes : Bytes) -> Result[StereoBuffer, String] {
   let mut offset = 12
   let mut data_offset = 44
   while offset + 8 <= bytes.length() {
-    if bytes[offset] == b'd' && bytes[offset + 1] == b'a' && bytes[offset + 2] == b't' && bytes[offset + 3] == b'a' {
+    if bytes[offset] == b'd' &&
+      bytes[offset + 1] == b'a' &&
+      bytes[offset + 2] == b't' &&
+      bytes[offset + 3] == b'a' {
       data_offset = offset + 8
       break
     }
     let chunk_len = read_u32_le(bytes, offset + 4)
-    offset = offset + 8 + chunk_len
+    if chunk_len < 0 {
+      break
+    }
+    let padded_len = if chunk_len % 2 == 1 { chunk_len + 1 } else { chunk_len }
+    offset = offset + 8 + padded_len
   }
 
   let left_samples = Array::make(info.num_samples, 0.0)
@@ -546,7 +583,7 @@ pub fn decode_wav_stereo(bytes : Bytes) -> Result[StereoBuffer, String] {
 
   Ok({
     sample_rate: info.sample_rate,
-    left: { sample_rate: info.sample_rate, samples: left_samples },
-    right: { sample_rate: info.sample_rate, samples: right_samples },
+    left: { sample_rate: info.sample_rate, samples: left_samples, },
+    right: { sample_rate: info.sample_rate, samples: right_samples, },
   })
 }

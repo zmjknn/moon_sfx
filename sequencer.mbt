@@ -1,5 +1,6 @@
 ///|
 /// Semitone musical pitch class in standard 12-tone equal temperament.
+#derive(Eq, Debug)
 pub(all) enum Note {
   C
   Cs // C# / Db
@@ -14,42 +15,44 @@ pub(all) enum Note {
   As // A# / Bb
   B
   Rest // Silence
-} derive(Eq, Debug)
+}
 
 ///|
 /// Musical note duration relative to measure meter.
+#derive(Eq, Debug)
 pub(all) enum Duration {
   Whole // 4 beats
   Half // 2 beats
   Quarter // 1 beat
   Eighth // 0.5 beat
   Sixteenth // 0.25 beat
-} derive(Eq, Debug)
+}
 
 ///|
 /// A single scored note event with pitch, octave, duration, and velocity volume.
+#derive(Eq, Debug)
 pub struct ScoreItem {
   note : Note
-  octave : Int
+  octave : Int32
   duration : Duration
   volume : Double
-} derive(Eq, Debug)
+}
 
 ///|
 /// Creates a new ScoreItem.
 pub fn ScoreItem::new(
   note : Note,
-  octave : Int,
+  octave : Int32,
   duration : Duration,
-  volume : Double
+  volume : Double,
 ) -> ScoreItem {
   let v = if volume < 0.0 { 0.0 } else if volume > 1.0 { 1.0 } else { volume }
-  { note, octave, duration, volume: v }
+  { note, octave, duration, volume: v, }
 }
 
 ///|
 /// Calculates exact fundamental frequency in Hertz based on A4 = 440 Hz standard.
-pub fn note_to_frequency(note : Note, octave : Int) -> Double {
+pub fn note_to_frequency(note : Note, octave : Int32) -> Double {
   match note {
     Rest => 0.0
     _ => {
@@ -78,7 +81,7 @@ pub fn note_to_frequency(note : Note, octave : Int) -> Double {
 
 ///|
 /// Converts Duration enum to duration in seconds based on Tempo BPM.
-pub fn duration_to_seconds(duration : Duration, bpm : Int) -> Double {
+pub fn duration_to_seconds(duration : Duration, bpm : Int32) -> Double {
   let tempo = if bpm <= 20 { 120.0 } else { bpm.to_double() }
   let beat_sec = 60.0 / tempo // Length of 1 quarter note in seconds
   match duration {
@@ -92,14 +95,15 @@ pub fn duration_to_seconds(duration : Duration, bpm : Int) -> Double {
 
 ///|
 /// A musical sequence of notes played sequentially.
+#derive(Eq, Debug)
 pub struct Score {
   items : Array[ScoreItem]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Creates an empty musical score.
 pub fn Score::new() -> Score {
-  { items: [] }
+  { items: [], }
 }
 
 ///|
@@ -107,11 +111,17 @@ pub fn Score::new() -> Score {
 pub fn Score::add(
   self : Score,
   note : Note,
-  octave : Int,
+  octave : Int32,
   duration : Duration,
-  volume : Double
+  volume : Double,
 ) -> Unit {
   self.items.push(ScoreItem::new(note, octave, duration, volume))
+}
+
+///|
+/// Returns the number of notes in this score.
+pub fn Score::length(self : Score) -> Int32 {
+  self.items.length()
 }
 
 ///|
@@ -149,10 +159,10 @@ pub fn Score::victory_fanfare() -> Score {
 /// Renders an entire Score into an AudioBuffer using the specified waveform and ADSR articulation.
 pub fn render_score(
   score : Score,
-  bpm : Int,
+  bpm : Int32,
   waveform : Waveform,
   adsr : ADSR,
-  sample_rate : Int
+  sample_rate : Int32,
 ) -> AudioBuffer {
   let sr = if sample_rate <= 0 { 44100 } else { sample_rate }
   let master = AudioBuffer::new(sr, 0)

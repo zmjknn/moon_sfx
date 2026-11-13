@@ -4,14 +4,14 @@
 
 ///|
 /// Helper to extract Char at index from String.
-fn char_at(s : String, idx : Int) -> Char {
+fn char_at(s : String, idx : Int32) -> Char {
   s[idx].to_int().unsafe_to_char()
 }
 
 ///|
 /// Parses an unsigned integer from a string starting at index `start`.
 /// Returns a tuple of (parsed_value, next_index).
-fn parse_int_digits(s : String, start : Int) -> (Int, Int) {
+fn parse_int_digits(s : String, start : Int32) -> (Int32, Int32) {
   let mut val = 0
   let mut idx = start
   let mut found = false
@@ -35,7 +35,7 @@ fn parse_int_digits(s : String, start : Int) -> (Int, Int) {
 
 ///|
 /// Maps a numeric duration value (1, 2, 4, 8, 16) to the Duration enum.
-fn number_to_duration(num : Int, default_dur : Duration) -> Duration {
+fn number_to_duration(num : Int32, default_dur : Duration) -> Duration {
   match num {
     1 => Whole
     2 => Half
@@ -51,11 +51,32 @@ fn number_to_duration(num : Int, default_dur : Duration) -> Duration {
 fn parse_pitch(letter : Char, accidental : Char) -> Note {
   match letter {
     'C' | 'c' => if accidental == '#' || accidental == '+' { Cs } else { C }
-    'D' | 'd' => if accidental == '#' || accidental == '+' { Ds } else if accidental == '-' { Cs } else { D }
+    'D' | 'd' =>
+      if accidental == '#' || accidental == '+' {
+        Ds
+      } else if accidental == '-' {
+        Cs
+      } else {
+        D
+      }
     'E' | 'e' => if accidental == '-' { Ds } else { E }
     'F' | 'f' => if accidental == '#' || accidental == '+' { Fs } else { F }
-    'G' | 'g' => if accidental == '#' || accidental == '+' { Gs } else if accidental == '-' { Fs } else { G }
-    'A' | 'a' => if accidental == '#' || accidental == '+' { As } else if accidental == '-' { Gs } else { A }
+    'G' | 'g' =>
+      if accidental == '#' || accidental == '+' {
+        Gs
+      } else if accidental == '-' {
+        Fs
+      } else {
+        G
+      }
+    'A' | 'a' =>
+      if accidental == '#' || accidental == '+' {
+        As
+      } else if accidental == '-' {
+        Gs
+      } else {
+        A
+      }
     'B' | 'b' => if accidental == '-' { As } else { B }
     _ => Rest
   }
@@ -76,7 +97,7 @@ fn parse_pitch(letter : Char, accidental : Char) -> Note {
 ///   - Optional explicit duration: e.g. `C8`, `F#16`, `D-2`, `A1`
 /// - Rests: `R` or `P` with optional duration (e.g. `R4`, `R8`).
 /// - Whitespace and bar dividers `|`, `,`, `;` are ignored.
-pub fn parse_mml(mml : String) -> (Score, Int) {
+pub fn parse_mml(mml : String) -> (Score, Int32) {
   let score = Score::new()
   let len = mml.length()
 
@@ -90,7 +111,13 @@ pub fn parse_mml(mml : String) -> (Score, Int) {
     let ch = char_at(mml, i)
 
     // Skip whitespace, separators, and bar lines
-    if ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || ch == '|' || ch == ',' || ch == ';' {
+    if ch == ' ' ||
+      ch == '\t' ||
+      ch == '\n' ||
+      ch == '\r' ||
+      ch == '|' ||
+      ch == ',' ||
+      ch == ';' {
       i = i + 1
       continue
     }
@@ -148,13 +175,30 @@ pub fn parse_mml(mml : String) -> (Score, Int) {
       // Rest (Silence)
       'R' | 'r' | 'P' | 'p' => {
         let (val, next_i) = parse_int_digits(mml, i + 1)
-        let dur = if val > 0 { number_to_duration(val, default_dur) } else { default_dur }
+        let dur = if val > 0 {
+          number_to_duration(val, default_dur)
+        } else {
+          default_dur
+        }
         score.add(Rest, octave, dur, 0.0)
         i = next_i
       }
 
       // Pitch Notes: C, D, E, F, G, A, B
-      'C' | 'c' | 'D' | 'd' | 'E' | 'e' | 'F' | 'f' | 'G' | 'g' | 'A' | 'a' | 'B' | 'b' => {
+      'C'
+      | 'c'
+      | 'D'
+      | 'd'
+      | 'E'
+      | 'e'
+      | 'F'
+      | 'f'
+      | 'G'
+      | 'g'
+      | 'A'
+      | 'a'
+      | 'B'
+      | 'b' => {
         let mut accidental = ' '
         let mut cur_i = i + 1
         if cur_i < len {
@@ -166,16 +210,18 @@ pub fn parse_mml(mml : String) -> (Score, Int) {
         }
 
         let (val, next_i) = parse_int_digits(mml, cur_i)
-        let dur = if val > 0 { number_to_duration(val, default_dur) } else { default_dur }
+        let dur = if val > 0 {
+          number_to_duration(val, default_dur)
+        } else {
+          default_dur
+        }
         let pitch = parse_pitch(ch, accidental)
         score.add(pitch, octave, dur, volume)
         i = next_i
       }
 
       // Unknown character, skip
-      _ => {
-        i = i + 1
-      }
+      _ => i = i + 1
     }
   }
 
@@ -188,7 +234,7 @@ pub fn render_mml(
   mml : String,
   waveform : Waveform,
   adsr : ADSR,
-  sample_rate : Int
+  sample_rate : Int32,
 ) -> AudioBuffer {
   let (score, bpm) = parse_mml(mml)
   render_score(score, bpm, waveform, adsr, sample_rate)

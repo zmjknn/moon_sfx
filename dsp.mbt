@@ -1,10 +1,11 @@
 ///|
 /// Filter type for digital biquad filtering.
+#derive(Eq, Debug)
 pub(all) enum FilterType {
   LowPass
   HighPass
   BandPass
-} derive(Eq, Debug)
+}
 
 ///|
 /// Digital biquad IIR filter implementing Robert Bristow-Johnson Audio EQ Cookbook algorithms.
@@ -26,7 +27,7 @@ pub fn BiquadFilter::new(
   filter_type : FilterType,
   cutoff_freq : Double,
   resonance_q : Double,
-  sample_rate : Int
+  sample_rate : Int32,
 ) -> BiquadFilter {
   let sr = if sample_rate <= 0 { 44100.0 } else { sample_rate.to_double() }
   let nyquist = sr * 0.5
@@ -76,7 +77,7 @@ pub fn BiquadFilter::new(
   let norm_a1 = a1 / a0
   let norm_a2 = a2 / a0
 
-  { b0, b1, b2, a1: norm_a1, a2: norm_a2, x1: 0.0, x2: 0.0, y1: 0.0, y2: 0.0 }
+  { b0, b1, b2, a1: norm_a1, a2: norm_a2, x1: 0.0, x2: 0.0, y1: 0.0, y2: 0.0, }
 }
 
 ///|
@@ -87,7 +88,7 @@ pub fn BiquadFilter::update_cutoff(
   filter_type : FilterType,
   cutoff_freq : Double,
   resonance_q : Double,
-  sample_rate : Int
+  sample_rate : Int32,
 ) -> Unit {
   let sr = if sample_rate <= 0 { 44100.0 } else { sample_rate.to_double() }
   let nyquist = sr * 0.5
@@ -140,7 +141,9 @@ pub fn BiquadFilter::update_cutoff(
 ///|
 /// Processes a single input sample through the biquad filter.
 pub fn BiquadFilter::process(self : BiquadFilter, x : Double) -> Double {
-  let y = self.b0 * x + self.b1 * self.x1 + self.b2 * self.x2 -
+  let y = self.b0 * x +
+    self.b1 * self.x1 +
+    self.b2 * self.x2 -
     self.a1 * self.y1 -
     self.a2 * self.y2
   self.x2 = self.x1
@@ -156,7 +159,7 @@ pub fn AudioBuffer::apply_filter(
   self : AudioBuffer,
   filter_type : FilterType,
   cutoff_freq : Double,
-  resonance_q : Double
+  resonance_q : Double,
 ) -> Unit {
   let filter = BiquadFilter::new(
     filter_type,
@@ -193,7 +196,7 @@ pub fn AudioBuffer::apply_echo(
   self : AudioBuffer,
   delay_seconds : Double,
   feedback : Double,
-  wet_mix : Double
+  wet_mix : Double,
 ) -> Unit {
   if delay_seconds <= 0.001 || feedback <= 0.0 {
     return
@@ -203,11 +206,18 @@ pub fn AudioBuffer::apply_echo(
     return
   }
   let fb = if feedback > 0.95 { 0.95 } else { feedback }
-  let mix = if wet_mix < 0.0 { 0.0 } else if wet_mix > 1.0 { 1.0 } else { wet_mix }
+  let mix = if wet_mix < 0.0 {
+    0.0
+  } else if wet_mix > 1.0 {
+    1.0
+  } else {
+    wet_mix
+  }
 
   for i = delay_samples; i < self.samples.length(); i = i + 1 {
     let delayed_sample = self.samples[i - delay_samples]
-    self.samples[i] = self.samples[i] * (1.0 - mix * 0.5) + delayed_sample * fb * mix
+    self.samples[i] = self.samples[i] * (1.0 - mix * 0.5) +
+      delayed_sample * fb * mix
   }
 }
 
@@ -215,8 +225,8 @@ pub fn AudioBuffer::apply_echo(
 /// Bitcrushes and downsamples the audio buffer to emulate classic 8-bit / 12-bit lo-fi retro sound chips.
 pub fn AudioBuffer::apply_bitcrush(
   self : AudioBuffer,
-  bits : Int,
-  downsample_factor : Int
+  bits : Int32,
+  downsample_factor : Int32,
 ) -> Unit {
   let b = if bits < 2 { 2 } else if bits > 16 { 16 } else { bits }
   let factor = if downsample_factor < 1 { 1 } else { downsample_factor }

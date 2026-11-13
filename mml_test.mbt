@@ -1,3 +1,4 @@
+///|
 test "mml_parser_syntax" {
   let mml_str = "T140 O5 L8 C D E F G A B > C4"
   let (score, bpm) = parse_mml(mml_str)
@@ -19,6 +20,7 @@ test "mml_parser_syntax" {
   assert_eq(item7.duration, Quarter)
 }
 
+///|
 test "mml_accidentals_and_rests" {
   let mml_str = "C#4 D+8 E-8 R4 F+2"
   let (score, _) = parse_mml(mml_str)
@@ -40,6 +42,7 @@ test "mml_accidentals_and_rests" {
   assert_eq(score.items[4].duration, Half)
 }
 
+///|
 test "render_mml_audio" {
   let mml_str = "T160 O4 C8 E8 G8 > C8"
   let audio = render_mml(mml_str, Square(0.5), ADSR::organ(), 44100)

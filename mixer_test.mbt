@@ -1,3 +1,4 @@
+///|
 test "mixer_multi_track_and_pan" {
   let mixer = Mixer::new(44100)
   let sfx_laser = play_laser_wav(1U)
@@ -25,6 +26,7 @@ test "mixer_multi_track_and_pan" {
   assert_true(mono.length() >= 13230)
 }
 
+///|
 test "mixer_track_muting_and_limiting" {
   let mixer = Mixer::new(44100)
   let tone1 = render_tone(Sine, 440.0, 0.1, 44100, 1.0)
@@ -42,7 +44,9 @@ test "mixer_track_muting_and_limiting" {
   let mut max_s = 0.0
   for i = 0; i < rendered.length(); i = i + 1 {
     let a = rendered.get(i).abs()
-    if a > max_s { max_s = a }
+    if a > max_s {
+      max_s = a
+    }
   }
   assert_true(max_s < 1.0)
 }

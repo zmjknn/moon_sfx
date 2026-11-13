@@ -13,8 +13,8 @@ pub fn render_fm_tone(
   mod_freq : Double,
   mod_index : Double,
   duration : Double,
-  sample_rate : Int,
-  volume : Double
+  sample_rate : Int32,
+  volume : Double,
 ) -> AudioBuffer {
   let sr = if sample_rate <= 0 { 44100 } else { sample_rate }
   let sr_d = sr.to_double()
@@ -48,7 +48,7 @@ pub fn render_fm_tone(
     }
   }
 
-  { sample_rate: sr, samples }
+  { sample_rate: sr, samples, }
 }
 
 ///|
@@ -61,9 +61,9 @@ pub fn render_fm_dynamic(
   mod_index_start : Double,
   mod_index_end : Double,
   duration : Double,
-  sample_rate : Int,
+  sample_rate : Int32,
   adsr : ADSR,
-  volume : Double
+  volume : Double,
 ) -> AudioBuffer {
   let sr = if sample_rate <= 0 { 44100 } else { sample_rate }
   let sr_d = sr.to_double()
@@ -85,7 +85,8 @@ pub fn render_fm_dynamic(
     let progress = i.to_double() / num_samples.to_double()
     // Exponential decay of modulation brightness
     let mod_factor = @math.exp(-progress * 3.0)
-    let current_index = mod_index_end + (mod_index_start - mod_index_end) * mod_factor
+    let current_index = mod_index_end +
+      (mod_index_start - mod_index_end) * mod_factor
 
     let mod_val = @math.sin(phi_m) * current_index
     let s = @math.sin(phi_c + mod_val) * vol
@@ -101,7 +102,7 @@ pub fn render_fm_dynamic(
     }
   }
 
-  let buf = { sample_rate: sr, samples }
+  let buf = { sample_rate: sr, samples, }
   buf.apply_adsr(adsr, Exponential)
   buf
 }
@@ -109,13 +110,17 @@ pub fn render_fm_dynamic(
 ///|
 /// FM Preset 1: Yamaha DX7 style retro Electric Piano (E-Piano).
 /// Uses 1:1 harmonic ratio with snappy attack and warm metallic bell transient.
-pub fn fm_electric_piano(freq : Double, duration : Double, sample_rate : Int) -> AudioBuffer {
+pub fn fm_electric_piano(
+  freq : Double,
+  duration : Double,
+  sample_rate : Int32,
+) -> AudioBuffer {
   let adsr = ADSR::new(0.005, 0.4, 0.35, 0.25)
   render_fm_dynamic(
     freq,
     freq * 1.0, // 1:1 ratio
-    3.2,        // Bright initial tine strike
-    0.2,        // Soft acoustic sustain
+    3.2, // Bright initial tine strike
+    0.2, // Soft acoustic sustain
     duration,
     sample_rate,
     adsr,
@@ -126,13 +131,17 @@ pub fn fm_electric_piano(freq : Double, duration : Double, sample_rate : Int) ->
 ///|
 /// FM Preset 2: Crystal Chime / Metallic Church Bell.
 /// Uses inharmonic ratio (1 : sqrt(2) ≈ 1 : 1.4142) to produce authentic metallic overtones.
-pub fn fm_bell(freq : Double, duration : Double, sample_rate : Int) -> AudioBuffer {
+pub fn fm_bell(
+  freq : Double,
+  duration : Double,
+  sample_rate : Int32,
+) -> AudioBuffer {
   let adsr = ADSR::new(0.002, duration * 0.7, 0.1, duration * 0.3)
   render_fm_dynamic(
     freq,
     freq * 1.41421356, // Inharmonic golden ratio
-    5.0,               // Heavy metallic clang
-    0.05,              // Settles into pure resonant hum
+    5.0, // Heavy metallic clang
+    0.05, // Settles into pure resonant hum
     duration,
     sample_rate,
     adsr,
@@ -143,7 +152,11 @@ pub fn fm_bell(freq : Double, duration : Double, sample_rate : Int) -> AudioBuff
 ///|
 /// FM Preset 3: 80s Synth Brass / Synth Horn.
 /// Features a dynamic filter swell characteristic of vintage polyphonic brass synthesizers.
-pub fn fm_brass(freq : Double, duration : Double, sample_rate : Int) -> AudioBuffer {
+pub fn fm_brass(
+  freq : Double,
+  duration : Double,
+  sample_rate : Int32,
+) -> AudioBuffer {
   let adsr = ADSR::new(0.06, 0.2, 0.7, 0.15)
   render_fm_dynamic(
     freq,
@@ -160,12 +173,16 @@ pub fn fm_brass(freq : Double, duration : Double, sample_rate : Int) -> AudioBuf
 ///|
 /// FM Preset 4: Sega Genesis 16-bit Funk Slap Bass.
 /// Uses 1:2 harmonic ratio for punching second harmonic transient.
-pub fn fm_slap_bass(freq : Double, duration : Double, sample_rate : Int) -> AudioBuffer {
+pub fn fm_slap_bass(
+  freq : Double,
+  duration : Double,
+  sample_rate : Int32,
+) -> AudioBuffer {
   let adsr = ADSR::percussive(0.2)
   render_fm_dynamic(
     freq,
     freq * 2.0, // 1:2 ratio for sharp low-end slap
-    6.0,        // High-energy slap transient
+    6.0, // High-energy slap transient
     0.3,
     duration,
     sample_rate,

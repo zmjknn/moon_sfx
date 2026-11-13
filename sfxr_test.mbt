@@ -110,7 +110,7 @@ test "sfxr_dynamic_filter_sweeps" {
   p.lpf_cutoff = 1500.0
   p.lpf_sweep = -1000.0 // Dynamic LPF plunge
   p.hpf_cutoff = 50.0
-  p.hpf_sweep = 200.0   // Dynamic HPF rise
+  p.hpf_sweep = 200.0 // Dynamic HPF rise
   p.sustain_time = 0.15
   p.decay_time = 0.15
   let buf = p.synthesize(44100)

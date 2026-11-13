@@ -3,6 +3,7 @@
 /// Implements 100% full feature parity with Tomas Pettersson's legendary sfxr algorithm,
 /// covering frequency slides, vibrato, pitch jumps (arpeggios), cycle repeats, phaser sweeps,
 /// and dynamic Low-Pass / High-Pass filter cutoff sweeps.
+#derive(Eq, Debug)
 pub(all) struct SfxParams {
   mut wave_type : Waveform
   mut start_freq : Double
@@ -19,16 +20,16 @@ pub(all) struct SfxParams {
   mut decay_time : Double
   mut lpf_cutoff : Double
   mut lpf_resonance : Double
-  mut lpf_sweep : Double      // Dynamic Low-Pass Filter Cutoff Sweep (Hz/sec)
+  mut lpf_sweep : Double // Dynamic Low-Pass Filter Cutoff Sweep (Hz/sec)
   mut hpf_cutoff : Double
-  mut hpf_sweep : Double      // Dynamic High-Pass Filter Cutoff Sweep (Hz/sec)
-  mut phaser_offset : Double  // Phaser delay buffer offset (seconds/normalized)
-  mut phaser_sweep : Double   // Phaser dynamic phase sweep ramp
-  mut repeat_speed : Double   // Periodic cycle repeat rate (0.0 = off, >0.0 = cyclic repeat)
-  mut change_amount : Double  // Pitch change multiplier (arpeggio jump)
-  mut change_time : Double    // Pitch change trigger time in seconds
+  mut hpf_sweep : Double // Dynamic High-Pass Filter Cutoff Sweep (Hz/sec)
+  mut phaser_offset : Double // Phaser delay buffer offset (seconds/normalized)
+  mut phaser_sweep : Double // Phaser dynamic phase sweep ramp
+  mut repeat_speed : Double // Periodic cycle repeat rate (0.0 = off, >0.0 = cyclic repeat)
+  mut change_amount : Double // Pitch change multiplier (arpeggio jump)
+  mut change_time : Double // Pitch change trigger time in seconds
   mut master_volume : Double
-} derive(Eq, Debug)
+}
 
 ///|
 /// Creates a default baseline SfxParams structure.
@@ -67,7 +68,10 @@ pub fn SfxParams::set_master_volume(self : SfxParams, volume : Double) -> Unit {
 }
 
 ///|
-pub fn SfxParams::set_freq_delta_slide(self : SfxParams, delta : Double) -> Unit {
+pub fn SfxParams::set_freq_delta_slide(
+  self : SfxParams,
+  delta : Double,
+) -> Unit {
   self.freq_delta_slide = delta
 }
 
@@ -92,7 +96,11 @@ pub fn SfxParams::set_hpf_sweep(self : SfxParams, sweep : Double) -> Unit {
 }
 
 ///|
-pub fn SfxParams::set_phaser(self : SfxParams, offset : Double, sweep : Double) -> Unit {
+pub fn SfxParams::set_phaser(
+  self : SfxParams,
+  offset : Double,
+  sweep : Double,
+) -> Unit {
   self.phaser_offset = offset
   self.phaser_sweep = sweep
 }
@@ -105,7 +113,7 @@ pub fn SfxParams::set_repeat_speed(self : SfxParams, speed : Double) -> Unit {
 ///|
 /// Generates a classic retro "Laser / Shoot" sound effect parameters.
 /// Incorporates rapid downward frequency slide and classic sci-fi phaser sweep.
-pub fn SfxParams::laser(seed : UInt) -> SfxParams {
+pub fn SfxParams::laser(seed : UInt32) -> SfxParams {
   let rng = Rng::new(seed)
   let p = SfxParams::default()
   p.wave_type = if rng.next_double() < 0.5 { Square(0.5) } else { Sawtooth }
@@ -125,7 +133,7 @@ pub fn SfxParams::laser(seed : UInt) -> SfxParams {
 ///|
 /// Generates a classic retro "Jump" sound effect parameters.
 /// Features a prominent upward frequency slide and snappy decay.
-pub fn SfxParams::jump(seed : UInt) -> SfxParams {
+pub fn SfxParams::jump(seed : UInt32) -> SfxParams {
   let rng = Rng::new(seed)
   let p = SfxParams::default()
   p.wave_type = Square(0.5)
@@ -141,7 +149,7 @@ pub fn SfxParams::jump(seed : UInt) -> SfxParams {
 ///|
 /// Generates a thunderous retro "Explosion" sound effect parameters.
 /// Leverages dynamic low-pass filter cutoff sweep to dive into deep rumble.
-pub fn SfxParams::explosion(seed : UInt) -> SfxParams {
+pub fn SfxParams::explosion(seed : UInt32) -> SfxParams {
   let rng = Rng::new(seed)
   let p = SfxParams::default()
   p.wave_type = Noise
@@ -161,7 +169,7 @@ pub fn SfxParams::explosion(seed : UInt) -> SfxParams {
 ///|
 /// Generates a bright, ascending two-tone retro "Coin / Pickup" sound effect.
 /// Employs pitch change arpeggio jumping upward by approx 5 semitones.
-pub fn SfxParams::coin(seed : UInt) -> SfxParams {
+pub fn SfxParams::coin(seed : UInt32) -> SfxParams {
   let rng = Rng::new(seed)
   let p = SfxParams::default()
   p.wave_type = Square(0.5)
@@ -179,7 +187,7 @@ pub fn SfxParams::coin(seed : UInt) -> SfxParams {
 ///|
 /// Generates a heavy crunchy retro "Hit / Hurt" sound effect.
 /// Uses high-pass filter sweep and steep frequency slide.
-pub fn SfxParams::hit(seed : UInt) -> SfxParams {
+pub fn SfxParams::hit(seed : UInt32) -> SfxParams {
   let rng = Rng::new(seed)
   let p = SfxParams::default()
   p.wave_type = if rng.next_double() < 0.5 { Noise } else { Square(0.25) }
@@ -196,7 +204,7 @@ pub fn SfxParams::hit(seed : UInt) -> SfxParams {
 ///|
 /// Generates an ascending, triumphant retro "Powerup" sound effect.
 /// Features frequency slide, vibrato modulation, and expanding filter sweep.
-pub fn SfxParams::powerup(seed : UInt) -> SfxParams {
+pub fn SfxParams::powerup(seed : UInt32) -> SfxParams {
   let rng = Rng::new(seed)
   let p = SfxParams::default()
   p.wave_type = if rng.next_double() < 0.5 { Sawtooth } else { Triangle }
@@ -215,7 +223,7 @@ pub fn SfxParams::powerup(seed : UInt) -> SfxParams {
 
 ///|
 /// Generates a crisp, snappy retro UI "Blip / Select" click sound effect.
-pub fn SfxParams::blip(seed : UInt) -> SfxParams {
+pub fn SfxParams::blip(seed : UInt32) -> SfxParams {
   let rng = Rng::new(seed)
   let p = SfxParams::default()
   p.wave_type = if rng.next_double() < 0.5 { Square(0.5) } else { Sine }
@@ -228,7 +236,7 @@ pub fn SfxParams::blip(seed : UInt) -> SfxParams {
 
 ///|
 /// Generates a periodic stuttering burst sound effect, showcasing cycle repeat and phaser.
-pub fn SfxParams::burst(seed : UInt) -> SfxParams {
+pub fn SfxParams::burst(seed : UInt32) -> SfxParams {
   let rng = Rng::new(seed)
   let p = SfxParams::default()
   p.wave_type = Square(0.5)
@@ -245,7 +253,7 @@ pub fn SfxParams::burst(seed : UInt) -> SfxParams {
 
 ///|
 /// Generates a completely randomized retro sound effect covering all parameter dimensions.
-pub fn SfxParams::randomize(seed : UInt) -> SfxParams {
+pub fn SfxParams::randomize(seed : UInt32) -> SfxParams {
   let rng = Rng::new(seed)
   let wave = match (rng.next_u32() % 5U).reinterpret_as_int() {
     0 => Waveform::Sine
@@ -262,21 +270,53 @@ pub fn SfxParams::randomize(seed : UInt) -> SfxParams {
     freq_delta_slide: rng.next_bipolar() * 0.05,
     square_duty: 0.1 + rng.next_double() * 0.8,
     duty_sweep: rng.next_bipolar() * 0.05,
-    vibrato_depth: if rng.next_double() < 0.4 { rng.next_double() * 0.3 } else { 0.0 },
+    vibrato_depth: if rng.next_double() < 0.4 {
+      rng.next_double() * 0.3
+    } else {
+      0.0
+    },
     vibrato_speed: rng.next_double() * 20.0,
     attack_time: 0.001 + rng.next_double() * 0.05,
     sustain_time: 0.02 + rng.next_double() * 0.3,
-    sustain_punch: if rng.next_double() < 0.3 { rng.next_double() * 0.4 } else { 0.0 },
+    sustain_punch: if rng.next_double() < 0.3 {
+      rng.next_double() * 0.4
+    } else {
+      0.0
+    },
     decay_time: 0.05 + rng.next_double() * 0.5,
     lpf_cutoff: 500.0 + rng.next_double() * 18000.0,
     lpf_resonance: 0.5 + rng.next_double() * 1.5,
-    lpf_sweep: if rng.next_double() < 0.4 { rng.next_bipolar() * 2000.0 } else { 0.0 },
+    lpf_sweep: if rng.next_double() < 0.4 {
+      rng.next_bipolar() * 2000.0
+    } else {
+      0.0
+    },
     hpf_cutoff: 10.0 + rng.next_double() * 100.0,
-    hpf_sweep: if rng.next_double() < 0.3 { rng.next_double() * 400.0 } else { 0.0 },
-    phaser_offset: if rng.next_double() < 0.35 { rng.next_double() * 0.2 } else { 0.0 },
-    phaser_sweep: if rng.next_double() < 0.35 { rng.next_bipolar() * 0.1 } else { 0.0 },
-    repeat_speed: if rng.next_double() < 0.25 { 0.3 + rng.next_double() * 0.5 } else { 0.0 },
-    change_amount: if rng.next_double() < 0.3 { 1.0 + rng.next_double() * 0.8 } else { 0.0 },
+    hpf_sweep: if rng.next_double() < 0.3 {
+      rng.next_double() * 400.0
+    } else {
+      0.0
+    },
+    phaser_offset: if rng.next_double() < 0.35 {
+      rng.next_double() * 0.2
+    } else {
+      0.0
+    },
+    phaser_sweep: if rng.next_double() < 0.35 {
+      rng.next_bipolar() * 0.1
+    } else {
+      0.0
+    },
+    repeat_speed: if rng.next_double() < 0.25 {
+      0.3 + rng.next_double() * 0.5
+    } else {
+      0.0
+    },
+    change_amount: if rng.next_double() < 0.3 {
+      1.0 + rng.next_double() * 0.8
+    } else {
+      0.0
+    },
     change_time: 0.02 + rng.next_double() * 0.1,
     master_volume: 0.8,
   }
@@ -284,9 +324,19 @@ pub fn SfxParams::randomize(seed : UInt) -> SfxParams {
 
 ///|
 /// Mutates existing parameters by a perturbation factor [0.0, 1.0] to create subtle variations.
-pub fn SfxParams::mutate(self : SfxParams, amount : Double, seed : UInt) -> SfxParams {
+pub fn SfxParams::mutate(
+  self : SfxParams,
+  amount : Double,
+  seed : UInt32,
+) -> SfxParams {
   let rng = Rng::new(seed)
-  let factor = if amount < 0.0 { 0.0 } else if amount > 1.0 { 1.0 } else { amount }
+  let factor = if amount < 0.0 {
+    0.0
+  } else if amount > 1.0 {
+    1.0
+  } else {
+    amount
+  }
   let perturb = fn(val : Double, scale : Double) -> Double {
     val + rng.next_bipolar() * factor * scale
   }
@@ -337,16 +387,40 @@ pub fn SfxParams::mutate(self : SfxParams, amount : Double, seed : UInt) -> SfxP
 /// 4. Cycle Repeat (repeat_speed)
 /// 5. Phaser delay comb filtering (phaser_offset, phaser_sweep)
 /// 6. Dynamic Filter Cutoff Sweeping (lpf_cutoff, lpf_sweep, hpf_cutoff, hpf_sweep)
-pub fn SfxParams::synthesize(self : SfxParams, sample_rate : Int) -> AudioBuffer {
+pub fn SfxParams::synthesize(
+  self : SfxParams,
+  sample_rate : Int32,
+) -> AudioBuffer {
   let sr = if sample_rate <= 0 { 44100 } else { sample_rate }
   let sr_f = sr.to_double()
   let rng = Rng::new(1234567U)
 
-  let total_dur = self.attack_time + self.sustain_time + self.decay_time
+  let attack_time = if self.attack_time < 0.0001 {
+    0.0001
+  } else {
+    self.attack_time
+  }
+  let sustain_time = if self.sustain_time < 0.0001 {
+    0.0001
+  } else {
+    self.sustain_time
+  }
+  let decay_time = if self.decay_time < 0.0001 {
+    0.0001
+  } else {
+    self.decay_time
+  }
+
+  let total_dur = attack_time + sustain_time + decay_time
   let num_samples = (total_dur * sr_f).to_int()
   let buffer = AudioBuffer::new(sr, num_samples)
 
-  let mut current_freq = self.start_freq
+  let mut current_freq = if self.start_freq < 1.0 {
+    1.0
+  } else {
+    self.start_freq
+  }
+  let min_f = if self.min_freq < 1.0 { 1.0 } else { self.min_freq }
   let mut freq_slide_acc = self.freq_slide
   let mut current_duty = self.square_duty
   let mut phase = 0.0
@@ -354,7 +428,12 @@ pub fn SfxParams::synthesize(self : SfxParams, sample_rate : Int) -> AudioBuffer
   // 1. Cycle repeat setup
   let has_repeat = self.repeat_speed > 0.05
   let rep_limit = if has_repeat {
-    (((1.0 - self.repeat_speed) * 0.35 + 0.03) * sr_f).to_int()
+    let raw = (((1.0 - self.repeat_speed) * 0.35 + 0.03) * sr_f).to_int()
+    if raw < 1 {
+      1
+    } else {
+      raw
+    }
   } else {
     0
   }
@@ -374,7 +453,8 @@ pub fn SfxParams::synthesize(self : SfxParams, sample_rate : Int) -> AudioBuffer
   let hpf = BiquadFilter::new(HighPass, cur_hpf, 0.707, sr)
 
   // 4. Phaser ring buffer setup
-  let use_phaser = self.phaser_offset.abs() > 0.001 || self.phaser_sweep.abs() > 0.001
+  let use_phaser = self.phaser_offset.abs() > 0.001 ||
+    self.phaser_sweep.abs() > 0.001
   let phaser_buf = Array::make(1024, 0.0)
   let mut phaser_pos = 0
   let mut cur_phaser_offset = self.phaser_offset * 1024.0
@@ -395,16 +475,19 @@ pub fn SfxParams::synthesize(self : SfxParams, sample_rate : Int) -> AudioBuffer
 
     // Pitch Arpeggio logic
     let check_time_sample = if has_repeat { rep_counter } else { i }
-    if self.change_amount > 0.001 && !arpeggio_triggered && check_time_sample >= change_sample_idx {
+    if self.change_amount > 0.001 &&
+      !arpeggio_triggered &&
+      check_time_sample >= change_sample_idx {
       current_freq = current_freq * self.change_amount
       arpeggio_triggered = true
     }
 
     // Frequency slide acceleration
     freq_slide_acc = freq_slide_acc + self.freq_delta_slide * (50.0 / sr_f)
-    current_freq = current_freq + freq_slide_acc * (current_freq * (100.0 / sr_f))
-    if current_freq < self.min_freq {
-      current_freq = self.min_freq
+    current_freq = current_freq +
+      freq_slide_acc * (current_freq * (100.0 / sr_f))
+    if current_freq < min_f {
+      current_freq = min_f
     } else if current_freq > 20000.0 {
       current_freq = 20000.0
     }
@@ -415,6 +498,9 @@ pub fn SfxParams::synthesize(self : SfxParams, sample_rate : Int) -> AudioBuffer
       let vib_phase = t * self.vibrato_speed * two_pi
       let vib_offset = @math.sin(vib_phase) * self.vibrato_depth * current_freq
       effective_freq = effective_freq + vib_offset
+    }
+    if effective_freq < 1.0 {
+      effective_freq = 1.0
     }
 
     // Duty sweep for square wave
@@ -464,16 +550,24 @@ pub fn SfxParams::synthesize(self : SfxParams, sample_rate : Int) -> AudioBuffer
     phase = phase + phase_inc
     if phase >= 1.0 {
       phase = phase - phase.floor()
+    } else if phase < 0.0 {
+      phase = phase - phase.floor()
     }
 
     // Envelope computation
-    let env_gain = if t < self.attack_time {
-      t / self.attack_time
-    } else if t < self.attack_time + self.sustain_time {
-      1.0 + self.sustain_punch * (1.0 - (t - self.attack_time) / self.sustain_time)
+    let env_gain = if t < attack_time {
+      t / attack_time
+    } else if t < attack_time + sustain_time {
+      1.0 + self.sustain_punch * (1.0 - (t - attack_time) / sustain_time)
     } else {
-      let decay_progress = (t - self.attack_time - self.sustain_time) / self.decay_time
-      let d = if decay_progress > 1.0 { 1.0 } else { decay_progress }
+      let decay_progress = (t - attack_time - sustain_time) / decay_time
+      let d = if decay_progress > 1.0 {
+        1.0
+      } else if decay_progress < 0.0 {
+        0.0
+      } else {
+        decay_progress
+      }
       1.0 - d
     }
 
@@ -490,13 +584,23 @@ pub fn SfxParams::synthesize(self : SfxParams, sample_rate : Int) -> AudioBuffer
 
     // Apply Phaser (Comb Filtering with Sweeping Delay)
     if use_phaser {
-      cur_phaser_offset = cur_phaser_offset + self.phaser_sweep * (1024.0 / sr_f)
+      cur_phaser_offset = cur_phaser_offset +
+        self.phaser_sweep * (1024.0 / sr_f)
+      if cur_phaser_offset < 0.0 {
+        cur_phaser_offset = 0.0
+      } else if cur_phaser_offset > 1023.0 {
+        cur_phaser_offset = 1023.0
+      }
       let tap_delta = cur_phaser_offset.to_int()
-      let tap_idx = (phaser_pos - tap_delta + 1024000) % 1024
+      let tap_idx = (phaser_pos - tap_delta + 1024) % 1024
       let phaser_sample = phaser_buf[tap_idx]
       phaser_buf[phaser_pos] = sample
       sample = (sample + phaser_sample) * 0.75
       phaser_pos = (phaser_pos + 1) % 1024
+    }
+
+    if sample.is_nan() || sample.is_inf() {
+      sample = 0.0
     }
 
     buffer.push(sample)

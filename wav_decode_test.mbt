@@ -1,3 +1,4 @@
+///|
 test "wav_inspect_header" {
   let buf = render_tone(Sine, 440.0, 0.25, 44100, 0.8)
   let bytes = encode_wav_16bit(buf)
@@ -18,6 +19,7 @@ test "wav_inspect_header" {
   assert_true((info.duration - 0.25).abs() < 0.001)
 }
 
+///|
 test "wav_roundtrip_mono_16bit" {
   let original = render_tone(Triangle, 330.0, 0.1, 44100, 0.75)
   let wav_bytes = encode_wav_16bit(original)
@@ -41,6 +43,7 @@ test "wav_roundtrip_mono_16bit" {
   }
 }
 
+///|
 test "wav_roundtrip_stereo_16bit" {
   let left = render_tone(Sine, 220.0, 0.1, 44100, 0.6)
   let right = render_tone(Sawtooth, 440.0, 0.1, 44100, 0.6)
@@ -69,6 +72,7 @@ test "wav_roundtrip_stereo_16bit" {
   }
 }
 
+///|
 test "wav_decode_corrupted_header" {
   let fake_bytes = Bytes::from_array([b'X', b'Y', b'Z', b'W'])
   let res = decode_wav(fake_bytes)

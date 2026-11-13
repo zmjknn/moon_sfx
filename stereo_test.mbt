@@ -1,3 +1,4 @@
+///|
 test "constant_power_panning_law" {
   let mono = render_tone(Sine, 440.0, 0.1, 44100, 1.0)
 
@@ -21,6 +22,7 @@ test "constant_power_panning_law" {
   assert_true((power_sum - orig_power).abs() < 0.001)
 }
 
+///|
 test "stereo_wav_encoding" {
   let mono_l = render_tone(Sine, 220.0, 0.1, 44100, 0.5)
   let mono_r = render_tone(Sine, 880.0, 0.1, 44100, 0.5)
@@ -45,6 +47,7 @@ test "stereo_wav_encoding" {
   assert_true(uri.has_prefix("data:audio/wav;base64,"))
 }
 
+///|
 test "soft_limit_saturation" {
   let buf = AudioBuffer::with_silence(44100, 100)
   // Insert extreme loud signals exceeding 1.0

@@ -3,7 +3,7 @@
 [![CI](https://github.com/zmjknn/moon_sfx/actions/workflows/ci.yml/badge.svg)](https://github.com/zmjknn/moon_sfx/actions/workflows/ci.yml)
 [![MoonBit](https://img.shields.io/badge/MoonBit-0.1.20261016-purple.svg)](https://www.moonbitlang.com)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-46%20passed-brightgreen.svg)](https://github.com/zmjknn/moon_sfx)
+[![Tests](https://img.shields.io/badge/Tests-53%20passed-brightgreen.svg)](https://github.com/zmjknn/moon_sfx)
 [![Dependencies](https://img.shields.io/badge/Dependencies-Zero-success.svg)](moon.mod)
 
 `moon_sfx` is an industrial-grade, zero-dependency procedural audio synthesizer, 8-bit retro game sound FX generator, and Microsoft RIFF WAVE binary encoder implemented in 100% pure [MoonBit](https://www.moonbitlang.com).
@@ -99,8 +99,14 @@ Emulates classic Yamaha OPL2/OPL3 and Sega Genesis YM2612 sound chips via 2-oper
 Full retro MML parser compiling single-line score strings directly into playable PCM audio:
 - **Syntax**: `T<bpm>`, `O<octave>`, `>`, `<`, `L<length>`, `V<volume>`, notes `C-B` (with `#`, `+`, `-`), and rests `R`/`P`.
 - **One-Liner Melody Rendering**:
-  ```moonbit
-  let audio = @sfx.render_mml("T140 O4 C8 E8 G8 > C4", Square(0.5), ADSR::organ(), 44100)
+  ```moonbit nocheck
+  ///|
+  let audio = @sfx.render_mml(
+    "T140 O4 C8 E8 G8 > C4",
+    Square(0.5),
+    ADSR::organ(),
+    44100,
+  )
   ```
 
 ### 9. Spatial Stereo & Multi-Track Game Mixer (`types.mbt`, `mixer.mbt`)
@@ -131,7 +137,7 @@ Or declare it in your `moon.mod.json`:
 ```json
 {
   "deps": {
-    "zmjknn/moon_sfx": "0.1.0"
+    "zmjknn/moon_sfx": "0.1.1"
   }
 }
 ```
@@ -140,11 +146,15 @@ Or declare it in your `moon.mod.json`:
 
 #### 1. Generate and Play a Laser Sound
 
-```moonbit
+```moonbit nocheck
+///|
+/// In moon.pkg:
 import {
   "zmjknn/moon_sfx" @sfx,
 }
 
+///|
+/// In main.mbt:
 fn main {
   // Generate a retro laser sound using seed 42
   let wav_bytes = @sfx.play_laser_wav(42U)
@@ -154,10 +164,17 @@ fn main {
 
 #### 2. Synthesize Custom Audio with Oscillator & ADSR
 
-```moonbit
+```moonbit nocheck
+///|
 fn make_synth_note() -> @sfx.AudioBuffer {
   // Render a 440Hz Square wave for 0.5 seconds at 44.1kHz
-  let tone = @sfx.render_tone(@sfx.Waveform::Square(0.5), 440.0, 0.5, 44100, 0.8)
+  let tone = @sfx.render_tone(
+    @sfx.Waveform::Square(0.5),
+    440.0,
+    0.5,
+    44100,
+    0.8,
+  )
 
   // Apply percussive envelope
   let adsr = @sfx.ADSR::percussive(0.4)
@@ -173,10 +190,17 @@ fn make_synth_note() -> @sfx.AudioBuffer {
 
 #### 3. Compose a Melody and Export Base64 Data URI
 
-```moonbit
+```moonbit nocheck
+///|
 fn create_fanfare() -> String {
   let score = @sfx.Score::victory_fanfare()
-  let audio = @sfx.render_score(score, 140, @sfx.Waveform::Square(0.5), @sfx.ADSR::organ(), 44100)
+  let audio = @sfx.render_score(
+    score,
+    140,
+    @sfx.Waveform::Square(0.5),
+    @sfx.ADSR::organ(),
+    44100,
+  )
   audio.to_data_uri()
 }
 ```
@@ -237,7 +261,7 @@ Output preview:
 
 ## Verification & Testing
 
-The package includes 46 deterministic unit, invariant, and round-trip tests covering:
+The package includes 53 deterministic unit, invariant, and round-trip tests covering:
 - Tomas Pettersson SFXR complete algorithm parity:
   - 频率滑动 (Frequency slide & delta acceleration slide)
   - 颤音 (Vibrato LFO depth & speed pitch modulation)
@@ -245,6 +269,9 @@ The package includes 46 deterministic unit, invariant, and round-trip tests cove
   - 周期重复 (Cycle repeat periodic envelope & frequency loop reset)
   - Phaser (1024-sample circular comb filter phase sweep)
   - 滤波扫描 (Dynamic Low-Pass & High-Pass cutoff sweep modulation)
+- Extreme parameter resilience and defensive guards (zero division, infinite loop, negative envelope/frequency/phaser sweeps)
+- Word-aligned odd-length RIFF chunk padding support
+- Strict stereo pan isolation invariants (pure left/right channel silence)
 - Mathematical waveform phase boundary accuracy
 - Robert Bristow-Johnson biquad filter stability
 - ADSR envelope phase transitions (Attack, Decay, Sustain, Release)

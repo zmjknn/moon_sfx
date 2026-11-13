@@ -1,12 +1,13 @@
 ///|
 /// A single audio track within the multi-track Mixer.
+#derive(Eq)
 pub struct Track {
   buffer : AudioBuffer
   offset_seconds : Double
   volume : Double
   pan : Double
   mut mute : Bool
-} derive(Eq)
+}
 
 ///|
 /// Creates a new Track.
@@ -14,12 +15,12 @@ pub fn Track::new(
   buffer : AudioBuffer,
   offset_seconds : Double,
   volume : Double,
-  pan : Double
+  pan : Double,
 ) -> Track {
   let off = if offset_seconds < 0.0 { 0.0 } else { offset_seconds }
   let vol = if volume < 0.0 { 0.0 } else { volume }
   let p = if pan < -1.0 { -1.0 } else if pan > 1.0 { 1.0 } else { pan }
-  { buffer, offset_seconds: off, volume: vol, pan: p, mute: false }
+  { buffer, offset_seconds: off, volume: vol, pan: p, mute: false, }
 }
 
 ///|
@@ -31,17 +32,18 @@ pub fn Track::set_mute(self : Track, mute : Bool) -> Unit {
 ///|
 /// Multi-track game audio mixer supporting polyphonic track scheduling,
 /// stereo panning per track, and anti-clipping master soft limiting.
+#derive(Eq)
 pub struct Mixer {
-  sample_rate : Int
+  sample_rate : Int32
   tracks : Array[Track]
   mut master_volume : Double
-} derive(Eq)
+}
 
 ///|
 /// Creates an empty Mixer with the specified sample rate.
-pub fn Mixer::new(sample_rate : Int) -> Mixer {
+pub fn Mixer::new(sample_rate : Int32) -> Mixer {
   let sr = if sample_rate <= 0 { 44100 } else { sample_rate }
-  { sample_rate: sr, tracks: [], master_volume: 1.0 }
+  { sample_rate: sr, tracks: [], master_volume: 1.0, }
 }
 
 ///|
@@ -52,7 +54,7 @@ pub fn Mixer::add_track(
   buffer : AudioBuffer,
   offset_seconds : Double,
   volume : Double,
-  pan : Double
+  pan : Double,
 ) -> Unit {
   self.tracks.push(Track::new(buffer, offset_seconds, volume, pan))
 }
@@ -97,9 +99,17 @@ pub fn Mixer::render_stereo(self : Mixer) -> StereoBuffer {
     }
 
     let offset_sample = (track.offset_seconds * sr_d).to_int()
-    let angle = (track.pan + 1.0) * pi_fourth
-    let gain_l = @math.cos(angle) * track.volume * self.master_volume
-    let gain_r = @math.sin(angle) * track.volume * self.master_volume
+    let (gain_l, gain_r) = if track.pan <= -0.9999 {
+      (track.volume * self.master_volume, 0.0)
+    } else if track.pan >= 0.9999 {
+      (0.0, track.volume * self.master_volume)
+    } else {
+      let angle = (track.pan + 1.0) * pi_fourth
+      (
+        @math.cos(angle) * track.volume * self.master_volume,
+        @math.sin(angle) * track.volume * self.master_volume,
+      )
+    }
 
     let t_samples = track.buffer.samples
     for i = 0; i < t_samples.length(); i = i + 1 {
@@ -112,14 +122,20 @@ pub fn Mixer::render_stereo(self : Mixer) -> StereoBuffer {
     }
   }
 
-  let left_buf : AudioBuffer = { sample_rate: self.sample_rate, samples: left_samples }
-  let right_buf : AudioBuffer = { sample_rate: self.sample_rate, samples: right_samples }
+  let left_buf : AudioBuffer = {
+    sample_rate: self.sample_rate,
+    samples: left_samples,
+  }
+  let right_buf : AudioBuffer = {
+    sample_rate: self.sample_rate,
+    samples: right_samples,
+  }
 
   // Apply master anti-clipping soft-limiting
   left_buf.soft_limit(0.85)
   right_buf.soft_limit(0.85)
 
-  { sample_rate: self.sample_rate, left: left_buf, right: right_buf }
+  { sample_rate: self.sample_rate, left: left_buf, right: right_buf, }
 }
 
 ///|
@@ -149,7 +165,7 @@ pub fn Mixer::render_mono(self : Mixer) -> AudioBuffer {
     }
   }
 
-  let buf : AudioBuffer = { sample_rate: self.sample_rate, samples }
+  let buf : AudioBuffer = { sample_rate: self.sample_rate, samples, }
   buf.soft_limit(0.85)
   buf
 }

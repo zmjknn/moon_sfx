@@ -1,3 +1,4 @@
+///|
 test "fm_tone_generation" {
   let fm = render_fm_tone(440.0, 440.0, 2.0, 0.1, 44100, 0.8)
   assert_eq(fm.length(), 4410)
@@ -13,6 +14,7 @@ test "fm_tone_generation" {
   assert_true(has_non_zero)
 }
 
+///|
 test "fm_presets_render" {
   // Electric Piano
   let ep = fm_electric_piano(440.0, 0.2, 44100)

@@ -1,18 +1,20 @@
 ///|
 /// Transition curve style for ADSR envelope phases.
+#derive(Eq, Debug)
 pub(all) enum Curve {
   Linear
   Exponential
-} derive(Eq, Debug)
+}
 
 ///|
 /// Standard 4-stage Attack-Decay-Sustain-Release audio envelope generator.
+#derive(Eq, Debug)
 pub struct ADSR {
   attack : Double // Duration in seconds to ramp up to 1.0
   decay : Double // Duration in seconds to drop to sustain level
   sustain : Double // Sustain amplitude level between 0.0 and 1.0
   release : Double // Duration in seconds to fade out to 0.0
-} derive(Eq, Debug)
+}
 
 ///|
 /// Constructs a new ADSR configuration ensuring non-negative values.
@@ -20,13 +22,19 @@ pub fn ADSR::new(
   attack : Double,
   decay : Double,
   sustain : Double,
-  release : Double
+  release : Double,
 ) -> ADSR {
   let a = if attack < 0.001 { 0.001 } else { attack }
   let d = if decay < 0.001 { 0.001 } else { decay }
-  let s = if sustain < 0.0 { 0.0 } else if sustain > 1.0 { 1.0 } else { sustain }
+  let s = if sustain < 0.0 {
+    0.0
+  } else if sustain > 1.0 {
+    1.0
+  } else {
+    sustain
+  }
   let r = if release < 0.001 { 0.001 } else { release }
-  { attack: a, decay: d, sustain: s, release: r }
+  { attack: a, decay: d, sustain: s, release: r, }
 }
 
 ///|
@@ -54,7 +62,7 @@ pub fn ADSR::gain_at(
   self : ADSR,
   time : Double,
   total_duration : Double,
-  curve : Curve
+  curve : Curve,
 ) -> Double {
   if time < 0.0 || time >= total_duration || total_duration <= 0.0 {
     return 0.0
@@ -110,7 +118,7 @@ pub fn ADSR::gain_at(
 pub fn AudioBuffer::apply_adsr(
   self : AudioBuffer,
   adsr : ADSR,
-  curve : Curve
+  curve : Curve,
 ) -> Unit {
   let dur = self.duration()
   let sr = self.sample_rate.to_double()
